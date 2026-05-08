@@ -1,0 +1,41 @@
+# 環境・認証情報
+.env
+*.env
+credentials.json
+token.json
+client_secret*.json
+service_account*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.anaconda/
+
+# Node.js
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# ビルド成果物
+baito-kanri/dist/
+baito-kanri/.vercel/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# エディタ
+.vscode/settings.json
+*.swp
+*.swo
+
+# ログ・一時ファイル
+*.log
+fw_result.txt
+
+# Firebase / API キー（ソースに埋め込まれている場合の除外はコードで対処）
