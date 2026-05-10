@@ -1,0 +1,149 @@
+name: Linear PR Sync
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+jobs:
+  sync-to-linear:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync PR to Linear
+        uses: actions/github-script@v7
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+        with:
+          script: |
+            const linearApiKey = process.env.LINEAR_API_KEY;
+            if (!linearApiKey) {
+              core.warning('LINEAR_API_KEY not set. Skipping Linear sync.');
+              return;
+            }
+
+            const pr = context.payload.pull_request;
+            const action = context.payload.action;
+            const repoName = context.repo.repo;
+            const prUrl = pr.html_url;
+            const prTitle = pr.title;
+            const prBody = pr.body || '';
+            const prNumber = pr.number;
+
+            // Check if PR title/branch contains a Linear issue ID (e.g. ENG-123)
+            const issueIdMatch = (pr.title + ' ' + (pr.head?.ref || '')).match(/([A-Z]+-\d+)/);
+
+            const query = async (gql, variables = {}) => {
+              const res = await fetch('https://api.linear.app/graphql', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': linearApiKey,
+                },
+                body: JSON.stringify({ query: gql, variables }),
+              });
+              const json = await res.json();
+              if (json.errors) throw new Error(JSON.stringify(json.errors));
+              return json.data;
+            };
+
+            if (issueIdMatch) {
+              // Link PR to existing issue
+              const issueId = issueIdMatch[1];
+              console.log(`Found Linear issue ID: ${issueId}`);
+
+              // Search for the issue
+              const searchData = await query(`
+                query($term: String!) {
+                  issueSearch(term: $term, first: 1) {
+                    nodes { id identifier title }
+                  }
+                }
+              `, { term: issueId });
+
+              const issue = searchData?.issueSearch?.nodes?.[0];
+              if (issue) {
+                // Add PR as attachment to the issue
+                await query(`
+                  mutation($issueId: String!, $url: String!, $title: String!) {
+                    attachmentCreate(input: {
+                      issueId: $issueId,
+                      url: $url,
+                      title: $title,
+                      subtitle: "GitHub PR"
+                    }) { success }
+                  }
+                `, { issueId: issue.id, url: prUrl, title: `PR #${prNumber}: ${prTitle}` });
+
+                // Update status if PR is merged
+                if (action === 'closed' && pr.merged) {
+                  const statesData = await query(`
+                    query($issueId: String!) {
+                      issue(id: $issueId) {
+                        team { states { nodes { id name type } } }
+                      }
+                    }
+                  `, { issueId: issue.id });
+
+                  const doneState = statesData?.issue?.team?.states?.nodes
+                    ?.find(s => s.type === 'completed');
+
+                  if (doneState) {
+                    await query(`
+                      mutation($id: String!, $stateId: String!) {
+                        issueUpdate(id: $id, input: { stateId: $stateId }) { success }
+                      }
+                    `, { id: issue.id, stateId: doneState.id });
+                    console.log(`Updated issue ${issueId} to Done`);
+                  }
+                }
+                console.log(`Linked PR to issue ${issueId}`);
+              }
+            } else {
+              // No issue ID found - create a new issue if PR is opened
+              if (action === 'opened' || action === 'reopened') {
+                // Get first team
+                const teamsData = await query(`
+                  query { teams { nodes { id name } } }
+                `);
+                const team = teamsData?.teams?.nodes?.[0];
+                if (!team) {
+                  core.warning('No Linear teams found.');
+                  return;
+                }
+
+                const description = [
+                  `**GitHub PR:** [#${prNumber} ${prTitle}](${prUrl})`,
+                  `**Repository:** ${repoName}`,
+                  '',
+                  prBody,
+                ].join('\n');
+
+                const createData = await query(`
+                  mutation($teamId: String!, $title: String!, $description: String!) {
+                    issueCreate(input: {
+                      teamId: $teamId,
+                      title: $title,
+                      description: $description
+                    }) {
+                      issue { id identifier url }
+                      success
+                    }
+                  }
+                `, {
+                  teamId: team.id,
+                  title: `[${repoName}] ${prTitle}`,
+                  description,
+                });
+
+                const newIssue = createData?.issueCreate?.issue;
+                if (newIssue) {
+                  console.log(`Created Linear issue: ${newIssue.identifier} - ${newIssue.url}`);
+                  // Comment on PR with Linear issue link
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                    body: `🔗 Linear issue created: [${newIssue.identifier}](${newIssue.url})`,
+                  });
+                }
+              }
+            }
