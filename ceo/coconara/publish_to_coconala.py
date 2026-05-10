@@ -180,23 +180,39 @@ async def fill_service_form(page):
     print("  準備ができたら Enter を押すと次へ進みます...")
     input()
 
+CHROME_PROFILE = r"C:\Users\ryuki\AppData\Local\Google\Chrome\User Data"
+
 async def main():
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False, slow_mo=300)
-        context = await browser.new_context(viewport={"width": 1280, "height": 900})
-        page = await context.new_page()
+        # 既存の Chrome プロファイルを使用 → Google ログイン済み状態で起動
+        context = await p.chromium.launch_persistent_context(
+            user_data_dir=CHROME_PROFILE,
+            channel="chrome",          # システムの Chrome を使用
+            headless=False,
+            slow_mo=400,
+            viewport={"width": 1280, "height": 900},
+            args=["--profile-directory=Default"],
+        )
+        page = context.pages[0] if context.pages else await context.new_page()
 
-        print("🚀 Coconala を開いています...")
-        await page.goto("https://coconala.com/login", wait_until="domcontentloaded")
+        print("🚀 Coconala を開いています（ログイン済み Chrome）...")
+        await page.goto("https://coconala.com/", wait_until="domcontentloaded")
+        await page.wait_for_timeout(2000)
 
-        await wait_for_login(page)
+        # ログイン済みか確認
+        url = page.url
+        if "/login" in url or "/signup" in url:
+            await wait_for_login(page)
+        else:
+            print(f"✅ ログイン済み確認 ({url})")
+
         await fill_service_form(page)
 
         print("\n✅ 自動入力完了！")
         print("   ブラウザで内容を確認し、「出品する」ボタンを押してください。")
         print("   ブラウザを閉じるまでこのスクリプトは待機します。\n")
-        await page.wait_for_event("close", timeout=0)
-        await browser.close()
+        input("   → 出品が完了したら Enter を押してください: ")
+        await context.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
