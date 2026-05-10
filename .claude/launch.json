@@ -1,0 +1,35 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "File Watcher",
+      "runtimeExecutable": "C:\\Users\\ryuki\\anaconda3\\python.exe",
+      "runtimeArgs": ["file_rewriter.py"],
+      "port": null
+    },
+    {
+      "name": "tangocho",
+      "runtimeExecutable": "C:\\Users\\ryuki\\anaconda3\\python.exe",
+      "runtimeArgs": ["-m", "http.server", "8765", "--bind", "0.0.0.0", "--directory", "tangocho"],
+      "port": 8765
+    },
+    {
+      "name": "baito-kanri",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "preview", "--prefix", "baito-kanri"],
+      "port": 4173
+    },
+    {
+      "name": "hoikuen-renraku",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "hoikuen-renraku"],
+      "port": 5173
+    },
+    {
+      "name": "workspace-hub",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "workspace-hub"],
+      "port": 5174
+    }
+  ]
+}
