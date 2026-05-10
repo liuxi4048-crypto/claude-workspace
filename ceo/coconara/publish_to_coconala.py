@@ -111,12 +111,17 @@ PLANS = [
 # ─────────────────────────────────────────────────────────────
 
 async def wait_for_login(page):
-    """ログイン完了（マイページ or サービス一覧が表示されるまで）を待つ"""
+    """ログイン完了を待つ — ログインページから離れたら OK"""
     print("\n👤 ブラウザでGoogleログインを完了してください...")
     print("   ログイン後、自動で次のステップに進みます。\n")
-    # ログイン後に表示される要素が現れるまで最大5分待つ
-    await page.wait_for_url("**/mypage/**", timeout=300_000)
-    print("✅ ログイン確認")
+    # /login ページから離れればログイン完了とみなす（最大5分）
+    for _ in range(300):
+        await asyncio.sleep(1)
+        url = page.url
+        if "coconala.com" in url and "/login" not in url and "/signup" not in url:
+            print(f"✅ ログイン確認 ({url})")
+            return
+    raise TimeoutError("ログインがタイムアウトしました")
 
 async def fill_service_form(page):
     """出品フォームを入力"""
