@@ -1,6 +1,6 @@
 import type { Order, Stats } from './types'
 
-const BASE = '/api'
+const BASE = (import.meta.env.VITE_API_URL ?? '') + '/api'
 
 export const api = {
   async getOrders(): Promise<Order[]> {
