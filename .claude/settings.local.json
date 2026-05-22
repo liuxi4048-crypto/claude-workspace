@@ -20,6 +20,8 @@
       "Bash(python3 -m pip install flask google-auth google-auth-oauthlib google-api-python-client -q)",
       "Bash(python3 -c \"import flask; print\\('flask ok'\\)\")",
       "Bash(/c/Users/ryuki/AppData/Local/Microsoft/WindowsApps/python --version)",
+      "Read(//c/Claude/**)",
+      "Read(//c/Users/ryuki/.claude/**)",
       "Read(//c/Users/ryuki/AppData/Local/Programs/**)",
       "Bash(ls /c/Python*)",
       "Bash(cmd.exe /c \"python --version\")",
@@ -57,7 +59,10 @@
       "Bash(npm create *)",
       "Bash(npm run *)",
       "PowerShell(gh --version 2>&1)",
-      "PowerShell($env:PATH = \"$env:PATH;C:\\\\Program Files\\\\GitHub CLI\"; gh --version 2>&1)"
+      "PowerShell($env:PATH = \"$env:PATH;C:\\\\Program Files\\\\GitHub CLI\"; gh --version 2>&1)",
+      "Bash(claude -p *)",
+      "Bash(C:/Users/ryuki/anaconda3/python.exe C:/Claude/claude_orchestrator.py*)",
+      "Bash(C:/Users/ryuki/anaconda3/python.exe claude_orchestrator.py*)"
     ]
   }
 }
