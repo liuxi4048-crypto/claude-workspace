@@ -39,3 +39,15 @@ desktop.ini
 fw_result.txt
 
 # Firebase / API キー（ソースに埋め込まれている場合の除外はコードで対処）
+
+# サブプロジェクト（各プロジェクトは独立管理）
+baito-kanri/
+calendar_app/
+tangocho/
+cowork/
+hoikuen-renraku/
+skills/
+watch_folder/
+file_rewriter.py
+requirements.txt
+run.bat
