@@ -46,6 +46,16 @@ export function useRecords(kujiId, kujiDef) {
     persist(next)
   }, [persist])
 
+  const batchIncrement = useCallback((items) => {
+    const next = { ...countsRef.current }
+    for (const { goodsId, count } of items) {
+      next[goodsId] = (next[goodsId] ?? 0) + count
+    }
+    countsRef.current = next
+    setCounts({ ...next })
+    persist(next)
+  }, [persist])
+
   const reset = useCallback(() => {
     countsRef.current = {}
     setCounts({})
@@ -73,5 +83,5 @@ export function useRecords(kujiId, kujiDef) {
     setCounts({ ...obj.counts })
   }, [kujiId, kujiDef])
 
-  return { counts, increment, decrement, reset, exportRecords, importRecords }
+  return { counts, increment, decrement, batchIncrement, reset, exportRecords, importRecords }
 }

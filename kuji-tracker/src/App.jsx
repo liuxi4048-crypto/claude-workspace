@@ -10,14 +10,16 @@ import GoodsGrid from './components/GoodsGrid'
 import SplitView from './components/SplitView'
 import Toast from './components/Toast'
 import TemplateGallery from './components/TemplateGallery'
+import QuickImportModal from './components/QuickImportModal'
 import './App.css'
 
 export default function App() {
   const { kujis, activeKujiId, setActiveKujiId, activeKuji, loading, importKuji, removeKuji } = useKujiData()
-  const { counts, increment, decrement, reset, exportRecords, importRecords } = useRecords(activeKujiId, activeKuji)
+  const { counts, increment, decrement, batchIncrement, reset, exportRecords, importRecords } = useRecords(activeKujiId, activeKuji)
   const [mode, setMode] = useState('normal')
   const [activeTab, setActiveTab] = useState(0)
   const [toast, setToast] = useState(null)
+  const [showQuickImport, setShowQuickImport] = useState(false)
 
   const summary = useMemo(() => computeSummary(activeKuji, counts), [activeKuji, counts])
 
@@ -80,6 +82,12 @@ export default function App() {
     showToast('記録をリセットしました', 'success')
   }, [reset, showToast])
 
+  const handleQuickImportConfirm = useCallback(({ matched }) => {
+    batchIncrement(matched)
+    setShowQuickImport(false)
+    showToast(`${matched.length}種類を記録しました`, 'success')
+  }, [batchIncrement, showToast])
+
   const toggleMode = useCallback(() => {
     setMode(m => m === 'normal' ? 'quick' : 'normal')
   }, [])
@@ -100,6 +108,7 @@ export default function App() {
         onReset={handleReset}
         onExportKujiDef={handleExportKujiDef}
         onDeleteKuji={handleDeleteKuji}
+        onQuickImport={() => setShowQuickImport(true)}
       />
 
       {kujis.length === 0 ? (
@@ -139,6 +148,14 @@ export default function App() {
             )}
           </main>
         </>
+      )}
+
+      {showQuickImport && activeKuji && (
+        <QuickImportModal
+          kujiDef={activeKuji}
+          onConfirm={handleQuickImportConfirm}
+          onClose={() => setShowQuickImport(false)}
+        />
       )}
 
       {toast && (
