@@ -9,6 +9,7 @@ import ModeBar from './components/ModeBar'
 import GoodsGrid from './components/GoodsGrid'
 import SplitView from './components/SplitView'
 import Toast from './components/Toast'
+import TemplateGallery from './components/TemplateGallery'
 import './App.css'
 
 export default function App() {
@@ -54,6 +55,25 @@ export default function App() {
     }
   }, [importRecords, showToast])
 
+  const handleExportKujiDef = useCallback(() => {
+    if (!activeKuji) return
+    const json = JSON.stringify(activeKuji, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `kuji-def-${activeKujiId}-${new Date().toISOString().slice(0,10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [activeKuji, activeKujiId])
+
+  const handleDeleteKuji = useCallback(() => {
+    if (!activeKujiId) return
+    if (!window.confirm(`「${activeKuji?.name}」を削除しますか？この操作は取り消せません。`)) return
+    removeKuji(activeKujiId)
+    showToast('くじを削除しました', 'success')
+  }, [activeKujiId, activeKuji, removeKuji, showToast])
+
   const handleReset = useCallback(() => {
     if (!window.confirm('記録をリセットしますか？この操作は取り消せません。')) return
     reset()
@@ -78,22 +98,12 @@ export default function App() {
         onExportRecords={handleExportRecords}
         onImportRecords={handleImportRecords}
         onReset={handleReset}
+        onExportKujiDef={handleExportKujiDef}
+        onDeleteKuji={handleDeleteKuji}
       />
 
       {kujis.length === 0 ? (
-        <div className="empty-app">
-          <div className="empty-app-icon">🎴</div>
-          <h2>くじ定義がありません</h2>
-          <p>📂 ボタンからくじ定義のJSONを読み込んでください</p>
-          <p className="empty-app-hint">サンプルJSONをダウンロードして試せます</p>
-          <a
-            href="/sample-kuji.json"
-            download
-            className="btn-primary"
-          >
-            サンプルをダウンロード
-          </a>
-        </div>
+        <TemplateGallery onImportKuji={handleImportKuji} />
       ) : (
         <>
           <SummaryBar summary={summary} />
