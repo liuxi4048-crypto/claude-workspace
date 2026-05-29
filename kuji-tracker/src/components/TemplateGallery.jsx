@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 
 const TEMPLATES = [
-  { url: '/templates/template-simple.json', label: 'シンプル3賞' },
-  { url: '/templates/template-collab.json', label: 'コラボ5賞' },
+  { url: `${import.meta.env.BASE_URL}templates/template-simple.json`, label: 'シンプル3賞' },
+  { url: `${import.meta.env.BASE_URL}templates/template-collab.json`, label: 'コラボ5賞' },
 ]
 
 export default function TemplateGallery({ onImportKuji }) {
