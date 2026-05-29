@@ -1,0 +1,29 @@
+{
+  "id": "sample",
+  "name": "サンプルくじ",
+  "price": 800,
+  "schemaVersion": 1,
+  "prizes": [
+    {
+      "id": "prize-a",
+      "label": "A賞",
+      "color": "#F76A8C",
+      "goods": [
+        { "id": "a-1", "name": "フィギュア Aタイプ", "sub": "限定カラー", "img": "" },
+        { "id": "a-2", "name": "フィギュア Bタイプ", "sub": "通常カラー", "img": "" },
+        { "id": "a-3", "name": "フィギュア Cタイプ", "sub": "レアカラー", "img": "" }
+      ]
+    },
+    {
+      "id": "prize-b",
+      "label": "B賞",
+      "color": "#7C6AF7",
+      "goods": [
+        { "id": "b-1", "name": "アクリルスタンド No.1", "sub": "", "img": "" },
+        { "id": "b-2", "name": "アクリルスタンド No.2", "sub": "", "img": "" },
+        { "id": "b-3", "name": "アクリルスタンド No.3", "sub": "", "img": "" },
+        { "id": "b-4", "name": "アクリルスタンド No.4", "sub": "", "img": "" }
+      ]
+    }
+  ]
+}

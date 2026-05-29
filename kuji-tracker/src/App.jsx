@@ -1,122 +1,143 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useState, useMemo, useCallback } from 'react'
+import { useKujiData } from './hooks/useKujiData'
+import { useRecords } from './hooks/useRecords'
+import { computeSummary } from './utils/summary'
+import Header from './components/Header'
+import SummaryBar from './components/SummaryBar'
+import ProgressBar from './components/ProgressBar'
+import ModeBar from './components/ModeBar'
+import GoodsGrid from './components/GoodsGrid'
+import SplitView from './components/SplitView'
+import Toast from './components/Toast'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const { kujis, activeKujiId, setActiveKujiId, activeKuji, loading, importKuji, removeKuji } = useKujiData()
+  const { counts, increment, decrement, reset, exportRecords, importRecords } = useRecords(activeKujiId, activeKuji)
+  const [mode, setMode] = useState('normal')
+  const [activeTab, setActiveTab] = useState(0)
+  const [toast, setToast] = useState(null)
+
+  const summary = useMemo(() => computeSummary(activeKuji, counts), [activeKuji, counts])
+
+  const showToast = useCallback((message, type = 'error') => {
+    setToast({ message, type })
+  }, [])
+
+  const handleImportKuji = useCallback(async (jsonStr) => {
+    try {
+      await importKuji(jsonStr)
+      showToast('くじ定義を読み込みました', 'success')
+    } catch (e) {
+      showToast(e.message)
+    }
+  }, [importKuji, showToast])
+
+  const handleExportRecords = useCallback(() => {
+    if (!activeKujiId) return
+    const json = exportRecords()
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `kuji-records-${activeKujiId}-${new Date().toISOString().slice(0,10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [activeKujiId, exportRecords])
+
+  const handleImportRecords = useCallback(async (jsonStr) => {
+    try {
+      await importRecords(jsonStr)
+      showToast('記録を読み込みました', 'success')
+    } catch (e) {
+      showToast(e.message)
+    }
+  }, [importRecords, showToast])
+
+  const handleReset = useCallback(() => {
+    if (!window.confirm('記録をリセットしますか？この操作は取り消せません。')) return
+    reset()
+    showToast('記録をリセットしました', 'success')
+  }, [reset, showToast])
+
+  const toggleMode = useCallback(() => {
+    setMode(m => m === 'normal' ? 'quick' : 'normal')
+  }, [])
+
+  if (loading) {
+    return <div className="loading">読み込み中...</div>
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <Header
+        kujis={kujis}
+        activeKujiId={activeKujiId}
+        onKujiChange={setActiveKujiId}
+        onImportKuji={handleImportKuji}
+        onExportRecords={handleExportRecords}
+        onImportRecords={handleImportRecords}
+        onReset={handleReset}
+      />
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {kujis.length === 0 ? (
+        <div className="empty-app">
+          <div className="empty-app-icon">🎴</div>
+          <h2>くじ定義がありません</h2>
+          <p>📂 ボタンからくじ定義のJSONを読み込んでください</p>
+          <p className="empty-app-hint">サンプルJSONをダウンロードして試せます</p>
+          <a
+            href="/sample-kuji.json"
+            download
+            className="btn-primary"
+          >
+            サンプルをダウンロード
+          </a>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      ) : (
+        <>
+          <SummaryBar summary={summary} />
+          <ProgressBar value={summary.pct} />
+          {activeTab === 0 && <ModeBar mode={mode} onToggle={toggleMode} />}
+          <div className="tabs">
+            <button
+              className={`tab ${activeTab === 0 ? 'active' : ''}`}
+              onClick={() => setActiveTab(0)}
+            >すべて</button>
+            <button
+              className={`tab ${activeTab === 1 ? 'active' : ''}`}
+              onClick={() => setActiveTab(1)}
+            >獲得・未獲得</button>
+          </div>
+          <main className="main-content">
+            {activeTab === 0 && activeKuji && (
+              <GoodsGrid
+                prizes={activeKuji.prizes}
+                counts={counts}
+                mode={mode}
+                onIncrement={increment}
+                onDecrement={decrement}
+              />
+            )}
+            {activeTab === 1 && activeKuji && (
+              <SplitView
+                prizes={activeKuji.prizes}
+                counts={counts}
+                onIncrement={increment}
+                onDecrement={decrement}
+              />
+            )}
+          </main>
+        </>
+      )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+    </div>
   )
 }
-
-export default App
