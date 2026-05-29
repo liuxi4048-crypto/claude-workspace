@@ -1,0 +1,32 @@
+{
+  "id": "template-simple",
+  "schemaVersion": 1,
+  "name": "シンプル3賞テンプレート",
+  "price": 600,
+  "prizes": [
+    {
+      "id": "ts-a", "label": "A賞", "color": "#F76A8C",
+      "goods": [
+        {"id":"ts-a-1","name":"グッズ A-1","sub":"サンプル景品","img":""},
+        {"id":"ts-a-2","name":"グッズ A-2","sub":"サンプル景品","img":""},
+        {"id":"ts-a-3","name":"グッズ A-3","sub":"サンプル景品","img":""}
+      ]
+    },
+    {
+      "id": "ts-b", "label": "B賞", "color": "#7C6AF7",
+      "goods": [
+        {"id":"ts-b-1","name":"グッズ B-1","sub":"サンプル景品","img":""},
+        {"id":"ts-b-2","name":"グッズ B-2","sub":"サンプル景品","img":""},
+        {"id":"ts-b-3","name":"グッズ B-3","sub":"サンプル景品","img":""}
+      ]
+    },
+    {
+      "id": "ts-c", "label": "C賞", "color": "#4CAF50",
+      "goods": [
+        {"id":"ts-c-1","name":"グッズ C-1","sub":"サンプル景品","img":""},
+        {"id":"ts-c-2","name":"グッズ C-2","sub":"サンプル景品","img":""},
+        {"id":"ts-c-3","name":"グッズ C-3","sub":"サンプル景品","img":""}
+      ]
+    }
+  ]
+}

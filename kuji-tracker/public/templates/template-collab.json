@@ -1,0 +1,13 @@
+{
+  "id": "template-collab",
+  "schemaVersion": 1,
+  "name": "コラボ5賞テンプレート",
+  "price": 1000,
+  "prizes": [
+    {"id":"tc-a","label":"A賞","color":"#F76A8C","goods":[{"id":"tc-a-1","name":"コラボ景品 A-1","sub":"限定グッズ","img":""},{"id":"tc-a-2","name":"コラボ景品 A-2","sub":"限定グッズ","img":""}]},
+    {"id":"tc-b","label":"B賞","color":"#7C6AF7","goods":[{"id":"tc-b-1","name":"コラボ景品 B-1","sub":"限定グッズ","img":""},{"id":"tc-b-2","name":"コラボ景品 B-2","sub":"限定グッズ","img":""}]},
+    {"id":"tc-c","label":"C賞","color":"#FF9800","goods":[{"id":"tc-c-1","name":"コラボ景品 C-1","sub":"限定グッズ","img":""},{"id":"tc-c-2","name":"コラボ景品 C-2","sub":"限定グッズ","img":""}]},
+    {"id":"tc-d","label":"D賞","color":"#4CAF50","goods":[{"id":"tc-d-1","name":"コラボ景品 D-1","sub":"限定グッズ","img":""},{"id":"tc-d-2","name":"コラボ景品 D-2","sub":"限定グッズ","img":""}]},
+    {"id":"tc-e","label":"E賞（ラスト）","color":"#f5c842","goods":[{"id":"tc-e-1","name":"コラボ景品 E-1","sub":"ラスト賞","img":""},{"id":"tc-e-2","name":"コラボ景品 E-2","sub":"ラスト賞","img":""}]}
+  ]
+}
