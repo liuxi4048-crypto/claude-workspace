@@ -22,14 +22,16 @@ export default defineConfig({
         ]
       },
       workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
             handler: 'CacheFirst',
-            options: { cacheName: 'images', expiration: { maxAgeSeconds: 30 * 24 * 60 * 60 } }
+            options: { cacheName: 'images', expiration: { maxEntries: 50, maxAgeSeconds: 30 * 24 * 60 * 60 } }
           }
         ],
-        navigateFallback: '/index.html'
+        navigateFallback: null,
+        cleanupOutdatedCaches: true,
       }
     })
   ]

@@ -1,17 +1,4 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash /home/user/claude-workspace/scripts/post-push-deploy.sh"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Skill(claude-api)",
@@ -80,7 +67,6 @@
       "Bash(claude -p *)",
       "Bash(C:/Users/ryuki/anaconda3/python.exe C:/Claude/claude_orchestrator.py*)",
       "Bash(C:/Users/ryuki/anaconda3/python.exe claude_orchestrator.py*)",
-
       "Bash(git *)",
       "Bash(gh *)",
       "Bash(npm install *)",
@@ -121,10 +107,8 @@
       "Bash(powershell *)",
       "Bash(cmd *)",
       "Bash(cmd.exe *)",
-
       "WebSearch",
       "WebFetch(*)",
-
       "PowerShell(pwsh -File *)",
       "PowerShell(claude *)",
       "PowerShell(& \"C:\\Program Files\\WezTerm\\wezterm.exe\" *)",
@@ -140,7 +124,6 @@
       "PowerShell(gh *)",
       "PowerShell(npm *)",
       "PowerShell(npx *)",
-
       "mcp__ef553b85-6197-42bd-8efb-7d9509ec7a8b__get_issue",
       "mcp__ef553b85-6197-42bd-8efb-7d9509ec7a8b__list_issues",
       "mcp__ef553b85-6197-42bd-8efb-7d9509ec7a8b__list_teams",
@@ -176,7 +159,6 @@
       "mcp__ef553b85-6197-42bd-8efb-7d9509ec7a8b__create_attachment_from_upload",
       "mcp__ef553b85-6197-42bd-8efb-7d9509ec7a8b__extract_images",
       "mcp__ef553b85-6197-42bd-8efb-7d9509ec7a8b__delete_comment",
-
       "mcp__github__add_issue_comment",
       "mcp__github__create_branch",
       "mcp__github__create_issue",
@@ -203,7 +185,6 @@
       "mcp__github__search_users",
       "mcp__github__update_issue",
       "mcp__github__update_pull_request_branch",
-
       "mcp__Claude_in_Chrome__navigate",
       "mcp__Claude_in_Chrome__read_page",
       "mcp__Claude_in_Chrome__get_page_text",
@@ -220,7 +201,6 @@
       "mcp__Claude_in_Chrome__resize_window",
       "mcp__Claude_in_Chrome__browser_batch",
       "mcp__Claude_in_Chrome__upload_image",
-
       "mcp__Claude_Preview__preview_snapshot",
       "mcp__Claude_Preview__preview_screenshot",
       "mcp__Claude_Preview__preview_console_logs",
@@ -233,15 +213,12 @@
       "mcp__Claude_Preview__preview_resize",
       "mcp__Claude_Preview__preview_stop",
       "mcp__Claude_Preview__preview_list",
-
       "mcp__scheduled-tasks__create_scheduled_task",
       "mcp__scheduled-tasks__list_scheduled_tasks",
       "mcp__scheduled-tasks__update_scheduled_task",
-
       "mcp__mcp-registry__search_mcp_registry",
       "mcp__mcp-registry__list_connectors",
       "mcp__mcp-registry__suggest_connectors",
-
       "mcp__computer-use__screenshot",
       "mcp__computer-use__request_access",
       "mcp__computer-use__list_granted_applications",
@@ -256,7 +233,23 @@
       "mcp__computer-use__cursor_position",
       "mcp__computer-use__read_clipboard",
       "mcp__computer-use__write_clipboard",
-      "mcp__computer-use__zoom"
+      "mcp__computer-use__zoom",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\" -Name; echo \"---\"; $env:USERNAME; echo \"---\"; Get-ChildItem \"$env:USERPROFILE\\\\.claude\" -Name -ErrorAction SilentlyContinue)",
+      "PowerShell($token = \\(Get-Content \"C:\\\\Users\\\\user\\\\.claude\\\\.credentials.json\" | ConvertFrom-Json\\).github_token 2>$null; if \\($token\\) { \"token found\" } else { \"no token\" })",
+      "PowerShell($env:GITHUB_TOKEN; [System.Environment]::GetEnvironmentVariable\\(\"GITHUB_TOKEN\", \"User\"\\); [System.Environment]::GetEnvironmentVariable\\(\"GH_TOKEN\", \"User\"\\))"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /home/user/claude-workspace/scripts/post-push-deploy.sh"
+          }
+        ]
+      }
     ]
   }
 }

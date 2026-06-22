@@ -1,3 +1,19 @@
+function validatePrizeArray(arr, fieldName, errors) {
+  arr.forEach((prize, pi) => {
+    if (!prize.id) errors.push(`${fieldName}[${pi}] missing id`)
+    if (!prize.label) errors.push(`${fieldName}[${pi}] missing label`)
+    if (!prize.color) errors.push(`${fieldName}[${pi}] missing color`)
+    if (!Array.isArray(prize.goods)) {
+      errors.push(`${fieldName}[${pi}] missing goods array`)
+    } else {
+      prize.goods.forEach((g, gi) => {
+        if (!g.id) errors.push(`${fieldName}[${pi}].goods[${gi}] missing id`)
+        if (!g.name) errors.push(`${fieldName}[${pi}].goods[${gi}] missing name`)
+      })
+    }
+  })
+}
+
 export function validateKujiDef(obj) {
   const errors = []
   if (!obj || typeof obj !== 'object') return { valid: false, errors: ['Not an object'] }
@@ -7,19 +23,15 @@ export function validateKujiDef(obj) {
   if (!Array.isArray(obj.prizes)) {
     errors.push('Missing prizes array')
   } else {
-    obj.prizes.forEach((prize, pi) => {
-      if (!prize.id) errors.push(`prizes[${pi}] missing id`)
-      if (!prize.label) errors.push(`prizes[${pi}] missing label`)
-      if (!prize.color) errors.push(`prizes[${pi}] missing color`)
-      if (!Array.isArray(prize.goods)) {
-        errors.push(`prizes[${pi}] missing goods array`)
-      } else {
-        prize.goods.forEach((g, gi) => {
-          if (!g.id) errors.push(`prizes[${pi}].goods[${gi}] missing id`)
-          if (!g.name) errors.push(`prizes[${pi}].goods[${gi}] missing name`)
-        })
-      }
-    })
+    validatePrizeArray(obj.prizes, 'prizes', errors)
+  }
+  // evePrizes is optional but validated if present
+  if (obj.evePrizes !== undefined) {
+    if (!Array.isArray(obj.evePrizes)) {
+      errors.push('evePrizes must be an array')
+    } else {
+      validatePrizeArray(obj.evePrizes, 'evePrizes', errors)
+    }
   }
   return { valid: errors.length === 0, errors }
 }
@@ -41,5 +53,7 @@ export function validateRecord(obj, kujiDef) {
 
 export function getAllGoodsIds(kujiDef) {
   if (!kujiDef) return new Set()
-  return new Set(kujiDef.prizes.flatMap(p => p.goods.map(g => g.id)))
+  const regular = kujiDef.prizes.flatMap(p => p.goods.map(g => g.id))
+  const even = (kujiDef.evePrizes ?? []).flatMap(p => p.goods.map(g => g.id))
+  return new Set([...regular, ...even])
 }

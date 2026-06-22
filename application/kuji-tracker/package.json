@@ -12,6 +12,8 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.54.0",
+    "@vercel/node": "^5.1.4",
     "idb": "^8.0.3",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

@@ -5,11 +5,6 @@ export default function QuickImportModal({ kujiDef, onConfirm, onClose }) {
   const [text, setText] = useState('')
   const [preview, setPreview] = useState(null)
 
-  function handleTextChange(e) {
-    setText(e.target.value)
-    setPreview(null)
-  }
-
   function handleAnalyze() {
     if (!text.trim()) return
     setPreview(matchGoodsFromText(text, kujiDef))
@@ -22,23 +17,22 @@ export default function QuickImportModal({ kujiDef, onConfirm, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" role="dialog" aria-label="テキスト一括入力" onClick={e => e.stopPropagation()}>
+      <div className="modal" role="dialog" aria-label="一括入力" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <span className="modal-title">📝 テキスト一括入力</span>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
+
         <p className="modal-desc">当選結果のテキストを貼り付けてください。景品名と照合して自動記録します。</p>
         <textarea
           className="modal-textarea"
           value={text}
-          onChange={handleTextChange}
-          placeholder="例：&#10;MAHIRU PARKA&#10;まひるパーカー&#10;A賞 フィギュア"
+          onChange={e => { setText(e.target.value); setPreview(null) }}
+          placeholder={'例：\nSPEAKER\nA賞 タオル\nB賞 スプーン&フォーク'}
           rows={6}
         />
         <div className="modal-actions">
-          <button className="btn-primary" onClick={handleAnalyze} disabled={!text.trim()}>
-            解析
-          </button>
+          <button className="btn-primary" onClick={handleAnalyze} disabled={!text.trim()}>解析</button>
         </div>
 
         {preview && (
@@ -59,9 +53,7 @@ export default function QuickImportModal({ kujiDef, onConfirm, onClose }) {
               <div className="modal-unmatched-title">マッチした景品がありませんでした</div>
             )}
             {preview.unmatched.length > 0 && (
-              <div className="modal-unmatched">
-                ⚠️ 未マッチ: {preview.unmatched.join('、')}
-              </div>
+              <div className="modal-unmatched">⚠️ 未マッチ: {preview.unmatched.join('、')}</div>
             )}
             {preview.matched.length > 0 && (
               <div className="modal-actions">

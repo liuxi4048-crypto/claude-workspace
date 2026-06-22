@@ -3,7 +3,7 @@ import { useRef } from 'react'
 export default function Header({
   kujis, activeKujiId, onKujiChange,
   onImportKuji, onExportRecords, onImportRecords, onReset,
-  onExportKujiDef, onDeleteKuji, onQuickImport
+  onExportKujiDef, onDeleteKuji, onQuickImport, onAddKuji, onImageImport
 }) {
   const kujiFileRef = useRef()
   const recordFileRef = useRef()
@@ -45,8 +45,10 @@ export default function Header({
           </>
         )}
         <button className="header-btn" onClick={onQuickImport} title="テキスト一括入力" disabled={!activeKujiId}>📝</button>
+        <button className="header-btn" onClick={onImageImport} title="画像からくじを追加">🖼️</button>
+        <button className="header-btn" onClick={onAddKuji} title="くじを手動作成">＋</button>
         <input ref={kujiFileRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleKujiFile} />
-        <button className="header-btn" onClick={() => kujiFileRef.current.click()} title="くじ定義を追加">📂</button>
+        <button className="header-btn" onClick={() => kujiFileRef.current.click()} title="くじ定義をJSONから追加">📂</button>
         <button className="header-btn" onClick={onExportRecords} title="記録を書き出し" disabled={!activeKujiId}>💾</button>
         <button className="header-btn" onClick={onExportKujiDef} title="くじ定義を書き出し" disabled={!activeKujiId}>📋</button>
         <input ref={recordFileRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleRecordFile} />

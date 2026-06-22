@@ -23,11 +23,13 @@
                       │ 合意後
          ┌────────────▼────────────┐
          │           COO            │  常駐・タスク管理・日報統合
-         └──┬──┬──┬──┬──┬──┬──┬──┬─┘
-            │  │  │  │  │  │  │  │
+         └──┬──┬──┬──┬──┬──┬──┬──┬──┬─┘
+            │  │  │  │  │  │  │  │  │
           CFO CTO CPO CMO CHRO CISO CAIO CLO CXO
-                                    │
-                    ┌───────────────┴──────────────┐
+                 │                      │
+                CRO ◀── フロー区切り    │
+          （レビューゲート）              │
+                    ┌───────────────────┴──────────┐
                     │  Internal Auditor             │ スプリント末
                     │  Internal Tech Auditor        │
                     └──────────────────────────────┘
@@ -35,7 +37,7 @@
 
 ---
 
-## メンバー一覧（16名）
+## メンバー一覧（17名）
 
 | # | 役職 | ファイル | 常駐 | 発動トリガー |
 |---|---|---|---|---|
@@ -52,6 +54,7 @@
 | L3 | **CAIO** | [caio.md](caio.md) | ✗ | `AI設計` `データ分析` `技術設計` |
 | L3 | **CLO** | [clo.md](clo.md) | ✗ | `法務確認` |
 | L3 | **CXO** | [cxo.md](cxo.md) | ✗ | `UX確認` `顧客対応` |
+| L3 | **CRO** | [cro.md](cro.md) | ✗ | `レビュー` `フロー確認` `企画決定` `フェーズ完了` `成果物確認` |
 | 監査 | **Internal Auditor** | [internal_auditor.md](internal_auditor.md) | ✗ | `内部監査` `フェーズ完了` `財務監査` |
 | 監査 | **Internal Tech Auditor** | [internal_tech_auditor.md](internal_tech_auditor.md) | ✗ | `技術監査`（スプリント末） |
 | 監査 | **External Auditor** | [external_auditor.md](external_auditor.md) | ✗ | `外部監査`（マイルストーン固定） |
@@ -108,6 +111,7 @@ COOが全部門日報を統合し【統合日報】を作成
 | `CTRL+ALT+3` | AIガバナンス三者合議（CAIO+CLO+CISO） |
 | `CTRL+ALT+4` | スプリント末監査（監査2名） |
 | `CTRL+ALT+5` | 提案作成（CMO+CFO） |
+| `CTRL+ALT+6` | CRO（1ペイン・ゲートレビュー） |
 
 詳細: [`wezterm_guide.md`](wezterm_guide.md) | スクリプト: [`launch/`](launch/)
 

@@ -11,6 +11,8 @@ import SplitView from './components/SplitView'
 import Toast from './components/Toast'
 import TemplateGallery from './components/TemplateGallery'
 import QuickImportModal from './components/QuickImportModal'
+import KujiBuilderModal from './components/KujiBuilderModal'
+import ImageImportModal from './components/ImageImportModal'
 import './App.css'
 
 export default function App() {
@@ -20,6 +22,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(0)
   const [toast, setToast] = useState(null)
   const [showQuickImport, setShowQuickImport] = useState(false)
+  const [showBuilder, setShowBuilder] = useState(false)
+  const [showImageImport, setShowImageImport] = useState(false)
 
   const summary = useMemo(() => computeSummary(activeKuji, counts), [activeKuji, counts])
 
@@ -109,10 +113,16 @@ export default function App() {
         onExportKujiDef={handleExportKujiDef}
         onDeleteKuji={handleDeleteKuji}
         onQuickImport={() => setShowQuickImport(true)}
+        onAddKuji={() => setShowBuilder(true)}
+        onImageImport={() => setShowImageImport(true)}
       />
 
       {kujis.length === 0 ? (
-        <TemplateGallery onImportKuji={handleImportKuji} />
+        <TemplateGallery
+          onImportKuji={handleImportKuji}
+          onOpenImageImport={() => setShowImageImport(true)}
+          onOpenBuilder={() => setShowBuilder(true)}
+        />
       ) : (
         <>
           <SummaryBar summary={summary} />
@@ -132,6 +142,7 @@ export default function App() {
             {activeTab === 0 && activeKuji && (
               <GoodsGrid
                 prizes={activeKuji.prizes}
+                evePrizes={activeKuji.evePrizes}
                 counts={counts}
                 mode={mode}
                 onIncrement={increment}
@@ -141,6 +152,7 @@ export default function App() {
             {activeTab === 1 && activeKuji && (
               <SplitView
                 prizes={activeKuji.prizes}
+                evePrizes={activeKuji.evePrizes}
                 counts={counts}
                 onIncrement={increment}
                 onDecrement={decrement}
@@ -150,11 +162,26 @@ export default function App() {
         </>
       )}
 
-      {showQuickImport && activeKuji && (
+      {showQuickImport && (
         <QuickImportModal
           kujiDef={activeKuji}
           onConfirm={handleQuickImportConfirm}
           onClose={() => setShowQuickImport(false)}
+          onImportKuji={handleImportKuji}
+        />
+      )}
+
+      {showBuilder && (
+        <KujiBuilderModal
+          onImportKuji={handleImportKuji}
+          onClose={() => setShowBuilder(false)}
+        />
+      )}
+
+      {showImageImport && (
+        <ImageImportModal
+          onImportKuji={handleImportKuji}
+          onClose={() => setShowImageImport(false)}
         />
       )}
 
