@@ -46,7 +46,7 @@ calendar_app/
 tangocho/
 cowork/
 hoikuen-renraku/
-skills/
+# skills/ は .claude/skills/ のためトラッキング対象外にしない
 watch_folder/
 file_rewriter.py
 requirements.txt
