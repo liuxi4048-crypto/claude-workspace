@@ -78,13 +78,8 @@ node scripts/ui-check.mjs   # Chromium での UI スモークテスト(要 dist-
 
 ## 🚀 デプロイ(GitHub Pages)
 
-`.github/workflows/deploy-pocket-llm.yml` が master への push(`application/pocket-llm/**` 変更時)で自動デプロイします。
-
-**初回のみ必要な設定(1分)**:
-1. GitHub リポジトリの **Settings → Pages** を開く
-2. **Source** を「**GitHub Actions**」に変更
-
-以降は master にマージするだけで自動公開されます。
+`.github/workflows/deploy-pocket-llm.yml` が master への push(`application/pocket-llm/**` 変更時)でビルドし、`gh-pages` ブランチへ公開します。
+gh-pages ブランチが作成されると GitHub Pages が自動で有効化されるため、**手動設定は不要**です。master にマージするだけで自動公開されます。
 
 ## アーキテクチャ
 
