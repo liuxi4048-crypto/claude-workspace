@@ -1,5 +1,5 @@
-# Pocket LLM を GitHub Pages にデプロイする
-# (Pages は configure-pages の enablement で自動有効化されるため手動設定は不要)
+# Pocket LLM を GitHub Pages にデプロイする(gh-pages ブランチ方式)
+# gh-pages ブランチへの push で GitHub が Pages を自動有効化するため手動設定は不要
 name: Deploy Pocket LLM to GitHub Pages
 
 on:
@@ -11,23 +11,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Enable GitHub Pages (初回の自動有効化)
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -43,22 +37,17 @@ jobs:
         run: |
           mkdir -p _site/pocket-llm
           cp -r application/pocket-llm/dist/* _site/pocket-llm/
+          # Pages 側で Jekyll 処理をさせない
+          touch _site/.nojekyll
           # ルートアクセス時は pocket-llm へリダイレクト
           cat > _site/index.html <<'EOF'
           <!doctype html><meta charset="utf-8">
           <meta http-equiv="refresh" content="0; url=./pocket-llm/">
           <a href="./pocket-llm/">Pocket LLM を開く</a>
           EOF
-      - uses: actions/upload-pages-artifact@v3
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: _site
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: _site
+          force_orphan: true
