@@ -1,0 +1,64 @@
+# Pocket LLM を GitHub Pages にデプロイする
+# (Pages は configure-pages の enablement で自動有効化されるため手動設定は不要)
+name: Deploy Pocket LLM to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'application/pocket-llm/**'
+      - '.github/workflows/deploy-pocket-llm.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable GitHub Pages (初回の自動有効化)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: application/pocket-llm/package-lock.json
+      - name: Build
+        working-directory: application/pocket-llm
+        run: |
+          npm ci
+          npm test
+          npm run build
+      - name: Assemble Pages site (pocket-llm をサブパスに配置)
+        run: |
+          mkdir -p _site/pocket-llm
+          cp -r application/pocket-llm/dist/* _site/pocket-llm/
+          # ルートアクセス時は pocket-llm へリダイレクト
+          cat > _site/index.html <<'EOF'
+          <!doctype html><meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=./pocket-llm/">
+          <a href="./pocket-llm/">Pocket LLM を開く</a>
+          EOF
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
