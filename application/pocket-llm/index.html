@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f1117" />
+    <meta name="description" content="スマホのブラウザ内でローカルLLMを実行。要約・計算・チャットが完全オフライン&プライベートに使えます。" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <title>Pocket LLM — スマホで動くローカルAI</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="app-header">
+        <h1>🤖 Pocket LLM</h1>
+        <div class="header-actions">
+          <span id="model-badge" class="model-badge" hidden></span>
+          <button id="btn-settings" class="icon-btn" aria-label="設定">⚙️</button>
+        </div>
+      </header>
+
+      <!-- WebGPU 非対応時の案内 -->
+      <div id="webgpu-warning" class="panel warn" hidden>
+        <h2>⚠️ WebGPU が利用できません</h2>
+        <p>このアプリはブラウザ内でAIモデルを動かすために WebGPU が必要です。</p>
+        <ul>
+          <li>Android では <strong>Chrome 121 以降</strong>をご利用ください(Playストアで Chrome を更新)</li>
+          <li>それでも動かない場合は、Chrome のアドレスバーに <code>chrome://flags</code> と入力し、「<strong>Unsafe WebGPU</strong>」を Enabled にして再起動してください</li>
+          <li>Samsung Internet / 古い WebView ブラウザは非対応の場合があります</li>
+        </ul>
+      </div>
+
+      <!-- モデルロードパネル -->
+      <div id="load-panel" class="panel">
+        <h2>モデルをロード</h2>
+        <p class="hint">初回はモデル(数GB)をダウンロードします。<strong>Wi-Fi 接続を推奨</strong>。2回目以降は端末内キャッシュから読み込み、オフラインでも動作します。</p>
+        <label class="field">
+          <span>モデル選択</span>
+          <select id="model-select"></select>
+        </label>
+        <p id="model-note" class="hint"></p>
+        <button id="btn-load" class="primary">モデルをロードする</button>
+        <div id="load-progress" hidden>
+          <div class="progress-bar"><div id="progress-fill"></div></div>
+          <p id="progress-text" class="hint"></p>
+        </div>
+      </div>
+
+      <!-- メインUI -->
+      <div id="main-ui" hidden>
+        <nav class="tabs">
+          <button class="tab active" data-tab="chat">💬 チャット</button>
+          <button class="tab" data-tab="summarize">📝 要約</button>
+          <button class="tab" data-tab="calc">🧮 計算</button>
+          <button class="tab" data-tab="about">ℹ️</button>
+        </nav>
+
+        <!-- チャット -->
+        <section id="tab-chat" class="tab-panel active">
+          <div id="chat-messages" class="messages"></div>
+          <form id="chat-form" class="input-row">
+            <textarea id="chat-input" rows="1" placeholder="メッセージを入力…" required></textarea>
+            <button type="submit" id="chat-send" class="primary">送信</button>
+          </form>
+          <div class="toolbar">
+            <button id="chat-stop" class="ghost" hidden>⏹ 停止</button>
+            <button id="chat-clear" class="ghost">🗑 履歴クリア</button>
+          </div>
+        </section>
+
+        <!-- 要約 -->
+        <section id="tab-summarize" class="tab-panel">
+          <label class="field">
+            <span>要約したいテキストを貼り付け(最大 <span id="sum-limit">6000</span> 文字)</span>
+            <textarea id="sum-input" rows="8" placeholder="記事・メール・議事録など…"></textarea>
+          </label>
+          <p id="sum-count" class="hint">0 文字</p>
+          <div class="chips" id="sum-style">
+            <button class="chip active" data-style="short">短く(1〜2文)</button>
+            <button class="chip" data-style="medium">普通(段落)</button>
+            <button class="chip" data-style="bullets">箇条書き</button>
+          </div>
+          <button id="sum-run" class="primary">要約する</button>
+          <button id="sum-stop" class="ghost" hidden>⏹ 停止</button>
+          <div id="sum-output" class="output" hidden></div>
+        </section>
+
+        <!-- 計算 -->
+        <section id="tab-calc" class="tab-panel">
+          <p class="hint">数式(例: <code>(1200*3 + 480) / 2</code>)は<strong>電卓エンジンで正確に計算</strong>します。文章題や単位換算はAIが解きます。</p>
+          <form id="calc-form" class="input-row">
+            <textarea id="calc-input" rows="2" placeholder="例: 12345 * 6789、または「時速60kmで2時間半走ると何km?」" required></textarea>
+            <button type="submit" class="primary">計算</button>
+          </form>
+          <button id="calc-stop" class="ghost" hidden>⏹ 停止</button>
+          <div id="calc-output" class="output" hidden></div>
+        </section>
+
+        <!-- このアプリについて -->
+        <section id="tab-about" class="tab-panel">
+          <div class="about-content">
+            <h2>このアプリについて</h2>
+            <p>Pocket LLM は、AIモデルをあなたのスマホの中だけで動かすアプリです。</p>
+            <h3>🔒 ローカル実行の利点</h3>
+            <ul>
+              <li><strong>完全プライベート</strong>: 入力したテキストは端末の外に一切送信されません</li>
+              <li><strong>オフライン動作</strong>: 初回のモデルダウンロード後は機内モードでも使えます</li>
+              <li><strong>無料・無制限</strong>: API課金なし、回数制限なし</li>
+            </ul>
+            <h3>✅ 得意なこと</h3>
+            <ul>
+              <li><strong>要約</strong>: 記事・メール・議事録の要約、箇条書き化</li>
+              <li><strong>文章作成・リライト</strong>: メール下書き、敬語への書き換え、校正</li>
+              <li><strong>翻訳</strong>: 日英・英日翻訳(日常文・ビジネス文レベル)</li>
+              <li><strong>質問応答</strong>: 言葉の意味、「〜とは何か」レベルの解説</li>
+              <li><strong>アイデア出し</strong>: 企画案の列挙、メリット/デメリット整理</li>
+              <li><strong>テキスト整形</strong>: 箇条書き⇔文章の変換、キーワード抽出、分類</li>
+              <li><strong>簡単な推論・コード</strong>: 文章題の立式、短いスクリプトの生成・説明</li>
+            </ul>
+            <h3>⚠️ 苦手なこと</h3>
+            <ul>
+              <li><strong>正確な計算</strong>: AIは計算機ではないため、多桁の計算は間違えます → このアプリでは<strong>計算モードの電卓エンジン</strong>が正確に計算します</li>
+              <li><strong>最新情報</strong>: 知識はモデルの学習時点まで。オフラインなので検索もできません</li>
+              <li><strong>超長文</strong>: 数万字の一括処理はできません(要約モードは分割をご案内します)</li>
+              <li><strong>厳密な事実性</strong>: 小型モデルは誤答(ハルシネーション)があります。<strong>重要な判断には使わないでください</strong></li>
+              <li><strong>画像・音声</strong>: テキスト専用です</li>
+            </ul>
+            <h3>📲 ホーム画面に追加</h3>
+            <p>Chrome のメニュー →「ホーム画面に追加」でアプリのように使えます。</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- 設定モーダル -->
+      <dialog id="settings-dialog">
+        <h2>設定</h2>
+        <label class="field">
+          <span>モデル変更(再ロードが必要)</span>
+          <select id="settings-model-select"></select>
+        </label>
+        <button id="btn-reload-model" class="primary">このモデルで再ロード</button>
+        <button id="btn-clear-cache" class="ghost">💾 モデルキャッシュを削除</button>
+        <button id="btn-close-settings" class="ghost">閉じる</button>
+      </dialog>
+
+      <footer class="app-footer">
+        <span>すべて端末内で処理・送信なし | 知識はモデル学習時点まで</span>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

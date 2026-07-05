@@ -1,0 +1,376 @@
+/* Pocket LLM — モバイルファースト・ダークテーマ */
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #242836;
+  --text: #e8eaf0;
+  --muted: #9aa0b0;
+  --accent: #4f8ef7;
+  --accent-press: #3a76dd;
+  --warn-bg: #3a2b16;
+  --warn-border: #b8860b;
+  --error: #f47174;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+#app {
+  max-width: 720px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--surface2);
+}
+
+.app-header h1 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.model-badge {
+  font-size: 0.72rem;
+  background: var(--surface2);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  margin: 16px;
+  padding: 16px;
+}
+
+.panel.warn {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+}
+
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 6px 0;
+}
+
+.hint.over {
+  color: var(--error);
+  font-weight: bold;
+}
+
+.field {
+  display: block;
+  margin: 12px 0;
+}
+
+.field span {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+select,
+textarea,
+input {
+  width: 100%;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid #333a4d;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  font-family: inherit;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 18px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button.primary {
+  background: var(--accent);
+  color: #fff;
+  width: 100%;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+button.primary:active {
+  background: var(--accent-press);
+}
+
+button.primary:disabled {
+  opacity: 0.5;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--surface2);
+  margin-top: 8px;
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 14px;
+}
+
+#progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.3s;
+}
+
+#progress-text {
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+/* タブ */
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 0;
+  border-bottom: 1px solid var(--surface2);
+}
+
+.tab {
+  flex: 1;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 8px 8px 0 0;
+  padding: 10px 4px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.tab.active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tab-panel {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  padding: 12px 16px;
+  min-height: 0;
+}
+
+.tab-panel.active {
+  display: flex;
+}
+
+#main-ui {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* チャット */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+  min-height: 40dvh;
+  max-height: 60dvh;
+}
+
+.bubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bubble.user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.bubble.assistant {
+  align-self: flex-start;
+  background: var(--surface);
+  border-bottom-left-radius: 4px;
+}
+
+.bubble.error {
+  color: var(--error);
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  margin-top: 8px;
+}
+
+.input-row textarea {
+  flex: 1;
+}
+
+.input-row button {
+  width: auto;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.toolbar button {
+  flex: 1;
+}
+
+/* チップ */
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.chip {
+  background: var(--surface2);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+}
+
+.chip.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* 出力 */
+.output {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-top: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.calc-answer {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+/* このアプリについて */
+.about-content h3 {
+  margin: 18px 0 6px;
+  font-size: 0.98rem;
+}
+
+.about-content ul {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.about-content li {
+  font-size: 0.9rem;
+  margin: 4px 0;
+}
+
+/* 設定モーダル */
+dialog {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--surface2);
+  border-radius: var(--radius);
+  padding: 20px;
+  width: min(90vw, 400px);
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+dialog button {
+  width: 100%;
+}
+
+.app-footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.72rem;
+  padding: 10px;
+  border-top: 1px solid var(--surface2);
+}
+
+code {
+  background: var(--surface2);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.85em;
+}
