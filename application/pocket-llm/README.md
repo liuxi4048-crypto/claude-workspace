@@ -4,11 +4,14 @@
 AIモデルはあなたの端末内だけで動き、入力テキストは一切外部に送信されません。
 
 - **技術**: [WebLLM](https://github.com/mlc-ai/web-llm)(WebGPU)+ Vite + vanilla JS
-- **公開URL(想定)**: `https://liuxi4048-crypto.github.io/claude-workspace/pocket-llm/`
+- **公開URL(2通り)**:
+  - GitHub Pages: `https://liuxi4048-crypto.github.io/claude-workspace/pocket-llm/`
+    （初回のみ Settings → Pages → Source を `gh-pages` ブランチ/`root` に設定して有効化が必要）
+  - Vercel(本番): master への push で自動デプロイ。プロジェクトの本番URL直下で配信
 
 ## 📱 スマホでの使い方
 
-1. Android の **Chrome(121以降)** で上記URLを開く
+1. Android の **Chrome(121以降)** で公開URLを開く
 2. モデルを選んで「モデルをロードする」をタップ
    - 初回は数GBのダウンロードがあるため **Wi-Fi推奨**
    - 2回目以降は端末内キャッシュから読み込み、**オフラインでも動作**

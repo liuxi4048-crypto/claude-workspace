@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "cd application/pocket-llm && npm ci",
+  "buildCommand": "cd application/pocket-llm && POCKET_LLM_BASE=/ npm run build",
+  "outputDirectory": "application/pocket-llm/dist",
+  "framework": null
+}
