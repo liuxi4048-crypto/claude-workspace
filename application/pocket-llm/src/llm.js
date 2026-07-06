@@ -4,31 +4,34 @@ import { CreateMLCEngine, deleteModelAllInfoInCache } from '@mlc-ai/web-llm'
 // スマホ向けモデルカタログ(web-llm prebuilt)。
 // すべて q4f32_1(f32)= モバイルGPU(Adreno/Mali)の f16 数値不安定による
 // 出力破損(「!!!!」羅列)を避けるための安定版。vram は必要 GPU メモリの目安。
+// ⚠ モバイルChromeのWebGPUは system RAM が十分でも GPU バッファ確保に上限があり、
+// 7B級以上は多くの端末で「Buffer was unmapped...」等で読込失敗する。実用上限は概ね3〜4B。
+// そのため既定は確実に動く 3B とし、大型モデルは「失敗する場合あり」と明示。
 export const MODELS = [
   {
-    id: 'Qwen2.5-7B-Instruct-q4f32_1-MLC',
-    label: 'Qwen2.5 7B(既定・最高品質)',
-    note: 'DL約4.5GB / 要RAM 10GB以上・VRAM約5.9GB。成熟した高品質モデル。日本語・要約・推論に強い',
-  },
-  {
     id: 'Qwen2.5-3B-Instruct-q4f32_1-MLC',
-    label: 'Qwen2.5 3B(標準・軽快)',
-    note: 'DL約2GB / 要RAM 6GB以上・VRAM約2.9GB。バランス型。多くの端末で快適',
+    label: 'Qwen2.5 3B(既定・推奨)',
+    note: 'DL約2GB / VRAM約2.9GB。実機で安定して動く中で最も高品質。日本語・要約・推論に強い',
   },
   {
     id: 'gemma-2-2b-jpn-it-q4f32_1-MLC',
     label: 'Gemma 2 2B 日本語版(最も安定)',
-    note: 'DL約1.4GB / 要RAM 6GB以上・VRAM約2.5GB。Google の日本語チューニング済み。困ったらこれ',
+    note: 'DL約1.4GB / VRAM約2.5GB。Google の日本語チューニング済み。困ったらこれ',
   },
   {
     id: 'Qwen2.5-1.5B-Instruct-q4f32_1-MLC',
     label: 'Qwen2.5 1.5B(超軽量)',
-    note: 'DL約1GB / 要RAM 4GB以上・VRAM約1.9GB。最も軽く高速。低スペック端末向け',
+    note: 'DL約1GB / VRAM約1.9GB。最も軽く高速。低スペック端末向け',
+  },
+  {
+    id: 'Qwen2.5-7B-Instruct-q4f32_1-MLC',
+    label: 'Qwen2.5 7B(大型・端末により失敗)',
+    note: 'DL約4.5GB / VRAM約5.9GB。最高品質だがモバイルGPUの上限を超えやすく、読込に失敗する端末が多い',
   },
   {
     id: 'Qwen3.5-9B-q4f32_1-MLC',
     label: 'Qwen3.5 9B(実験・最大)',
-    note: 'DL約5.5GB / 要RAM 12GB以上・VRAM約7.5GB。最新世代だが大きく、端末により読込失敗の可能性あり',
+    note: 'DL約5.5GB / VRAM約7.5GB。ハイエンドPC向け。スマホではほぼ読込失敗します',
   },
 ]
 
@@ -57,6 +60,14 @@ export function currentModel() {
 }
 
 export async function loadModel(modelId, onProgress) {
+  // 前のエンジンが GPU バッファを掴んだままだと再ロード時に破棄競合が起きるため、明示的に解放する
+  if (engine) {
+    try {
+      await engine.unload()
+    } catch {
+      /* 解放失敗は無視して続行 */
+    }
+  }
   engine = null
   currentModelId = null
   engine = await CreateMLCEngine(modelId, {

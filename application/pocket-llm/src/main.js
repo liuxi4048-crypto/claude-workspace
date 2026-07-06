@@ -71,9 +71,15 @@ async function startLoad(modelId) {
     badge.textContent = currentModel()?.label?.split('(')[0]?.trim() || modelId
     badge.hidden = false
   } catch (err) {
-    progressText.textContent =
-      `ロードに失敗しました: ${err.message}\n` +
-      'メモリ不足の可能性があります。より軽量なモデルを選んで再試行してください。'
+    const msg = String(err?.message || err)
+    // WebGPU のバッファ確保失敗 = モデルが端末のGPUメモリ上限を超えている
+    const isGpuMemory =
+      /mapAsync|unmapped|out of memory|OOM|buffer|allocation|createBuffer|exceeds/i.test(msg)
+    progressText.textContent = isGpuMemory
+      ? `このモデルは端末のGPUメモリ上限を超えて読み込めませんでした。\n` +
+        `より軽量なモデル(Gemma 2 2B 日本語版 など)を選んで再試行してください。\n` +
+        `※スマホのGPUはRAMが大きくても大型モデルを載せられないことがあります。\n(詳細: ${msg})`
+      : `ロードに失敗しました: ${msg}\n軽量なモデルを選んで再試行してください。`
     progressFill.style.width = '0%'
   } finally {
     loadBtn.disabled = false

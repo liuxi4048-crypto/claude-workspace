@@ -58,9 +58,9 @@ await check('モデル選択肢が5件', async () => {
   if (n !== 5) throw new Error(`options=${n}`)
 })
 
-await check('既定モデルは Qwen2.5 7B(q4f32)', async () => {
+await check('既定モデルは Qwen2.5 3B(q4f32・実機安定)', async () => {
   const v = await page.$eval('#model-select', (el) => el.value)
-  if (v !== 'Qwen2.5-7B-Instruct-q4f32_1-MLC') throw new Error(v)
+  if (v !== 'Qwen2.5-3B-Instruct-q4f32_1-MLC') throw new Error(v)
 })
 
 await check('全モデルが q4f32(モバイル安定版)', async () => {
