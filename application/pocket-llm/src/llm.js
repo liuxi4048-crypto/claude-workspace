@@ -1,32 +1,34 @@
 // WebLLM エンジン管理: モデル定義・ロード・ストリーミング生成
 import { CreateMLCEngine, deleteModelAllInfoInCache } from '@mlc-ai/web-llm'
 
-// スマホ向けモデルカタログ(web-llm prebuilt)。vram はロードに必要な GPU メモリの目安。
+// スマホ向けモデルカタログ(web-llm prebuilt)。
+// すべて q4f32_1(f32)= モバイルGPU(Adreno/Mali)の f16 数値不安定による
+// 出力破損(「!!!!」羅列)を避けるための安定版。vram は必要 GPU メモリの目安。
 export const MODELS = [
   {
-    id: 'Qwen3.5-4B-q4f16_1-MLC',
-    label: 'Qwen3.5 4B(既定・高品質)',
-    note: 'DL約2.5GB / 要RAM 8GB以上。日本語・要約・推論に強い最新世代',
+    id: 'Qwen2.5-7B-Instruct-q4f32_1-MLC',
+    label: 'Qwen2.5 7B(既定・最高品質)',
+    note: 'DL約4.5GB / 要RAM 10GB以上・VRAM約5.9GB。成熟した高品質モデル。日本語・要約・推論に強い',
   },
   {
-    id: 'Qwen3.5-2B-q4f16_1-MLC',
-    label: 'Qwen3.5 2B(バランス)',
-    note: 'DL約1.4GB / 要RAM 6GB以上。軽さと賢さのバランス',
+    id: 'Qwen2.5-3B-Instruct-q4f32_1-MLC',
+    label: 'Qwen2.5 3B(標準・軽快)',
+    note: 'DL約2GB / 要RAM 6GB以上・VRAM約2.9GB。バランス型。多くの端末で快適',
   },
   {
-    id: 'gemma-2-2b-jpn-it-q4f16_1-MLC',
-    label: 'Gemma 2 2B 日本語版(軽め)',
-    note: 'DL約1.4GB / 要RAM 6GB以上。日本語チューニング済み',
+    id: 'gemma-2-2b-jpn-it-q4f32_1-MLC',
+    label: 'Gemma 2 2B 日本語版(最も安定)',
+    note: 'DL約1.4GB / 要RAM 6GB以上・VRAM約2.5GB。Google の日本語チューニング済み。困ったらこれ',
   },
   {
-    id: 'Qwen3.5-0.8B-q4f16_1-MLC',
-    label: 'Qwen3.5 0.8B(超軽量)',
-    note: 'DL約0.6GB / 要RAM 4GB以上。低スペック端末向け',
+    id: 'Qwen2.5-1.5B-Instruct-q4f32_1-MLC',
+    label: 'Qwen2.5 1.5B(超軽量)',
+    note: 'DL約1GB / 要RAM 4GB以上・VRAM約1.9GB。最も軽く高速。低スペック端末向け',
   },
   {
-    id: 'Qwen3.5-9B-q4f16_1-MLC',
-    label: 'Qwen3.5 9B(最高品質)',
-    note: 'DL約5.2GB / 要RAM 12GB以上。フラッグシップ端末のみ',
+    id: 'Qwen3.5-9B-q4f32_1-MLC',
+    label: 'Qwen3.5 9B(実験・最大)',
+    note: 'DL約5.5GB / 要RAM 12GB以上・VRAM約7.5GB。最新世代だが大きく、端末により読込失敗の可能性あり',
   },
 ]
 

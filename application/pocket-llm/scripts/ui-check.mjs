@@ -58,9 +58,15 @@ await check('モデル選択肢が5件', async () => {
   if (n !== 5) throw new Error(`options=${n}`)
 })
 
-await check('既定モデルは Qwen3.5 4B', async () => {
+await check('既定モデルは Qwen2.5 7B(q4f32)', async () => {
   const v = await page.$eval('#model-select', (el) => el.value)
-  if (v !== 'Qwen3.5-4B-q4f16_1-MLC') throw new Error(v)
+  if (v !== 'Qwen2.5-7B-Instruct-q4f32_1-MLC') throw new Error(v)
+})
+
+await check('全モデルが q4f32(モバイル安定版)', async () => {
+  const vals = await page.$$eval('#model-select option', (o) => o.map((x) => x.value))
+  const bad = vals.filter((v) => !v.includes('q4f32'))
+  if (bad.length) throw new Error(`非f32モデル: ${bad.join(', ')}`)
 })
 
 // タブUI はモデルロード後に表示されるため、検証用に強制表示して切替を確認
