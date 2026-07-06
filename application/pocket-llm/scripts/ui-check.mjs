@@ -53,20 +53,14 @@ await check('WebGPU 判定(コンテナではGPU無し想定)', async () => {
   if (hasGpu !== warnHidden) throw new Error('WebGPU 有無と警告表示が不整合')
 })
 
-await check('モデル選択肢が5件', async () => {
+await check('モデル選択肢が6件', async () => {
   const n = await page.$$eval('#model-select option', (o) => o.length)
-  if (n !== 5) throw new Error(`options=${n}`)
+  if (n !== 6) throw new Error(`options=${n}`)
 })
 
-await check('既定モデルは Qwen2.5 3B(q4f32・実機安定)', async () => {
+await check('既定は最も載りやすい gemma-2-2b-jpn(f16)', async () => {
   const v = await page.$eval('#model-select', (el) => el.value)
-  if (v !== 'Qwen2.5-3B-Instruct-q4f32_1-MLC') throw new Error(v)
-})
-
-await check('全モデルが q4f32(モバイル安定版)', async () => {
-  const vals = await page.$$eval('#model-select option', (o) => o.map((x) => x.value))
-  const bad = vals.filter((v) => !v.includes('q4f32'))
-  if (bad.length) throw new Error(`非f32モデル: ${bad.join(', ')}`)
+  if (v !== 'gemma-2-2b-jpn-it-q4f16_1-MLC') throw new Error(v)
 })
 
 // タブUI はモデルロード後に表示されるため、検証用に強制表示して切替を確認

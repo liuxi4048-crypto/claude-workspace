@@ -40,7 +40,7 @@
           <select id="model-select"></select>
         </label>
         <p id="model-note" class="hint"></p>
-        <p class="hint">💡 読込に失敗する / 応答が「!!!!」に化ける場合は、より軽いモデル(Gemma 2 2B 日本語版など)を選び直してください。スマホのGPUは大型モデルを載せられないことがあります(RAMが大きくても)。</p>
+        <p class="hint">💡 読込に失敗する場合は、より小さいモデル(Qwen2.5 1.5B → Llama 3.2 1B)を順に試してください。応答が「!!!!」に化ける場合は「…安定版(f32)」を選んでください。エラー時は画面にGPU情報が表示されます。</p>
         <button id="btn-load" class="primary">モデルをロードする</button>
         <div id="load-progress" hidden>
           <div class="progress-bar"><div id="progress-fill"></div></div>

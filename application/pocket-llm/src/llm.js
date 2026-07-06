@@ -2,36 +2,41 @@
 import { CreateMLCEngine, deleteModelAllInfoInCache } from '@mlc-ai/web-llm'
 
 // スマホ向けモデルカタログ(web-llm prebuilt)。
-// すべて q4f32_1(f32)= モバイルGPU(Adreno/Mali)の f16 数値不安定による
-// 出力破損(「!!!!」羅列)を避けるための安定版。vram は必要 GPU メモリの目安。
-// ⚠ モバイルChromeのWebGPUは system RAM が十分でも GPU バッファ確保に上限があり、
-// 7B級以上は多くの端末で「Buffer was unmapped...」等で読込失敗する。実用上限は概ね3〜4B。
-// そのため既定は確実に動く 3B とし、大型モデルは「失敗する場合あり」と明示。
+// 方針: まず「確実に載る」ことを最優先。最小・成熟モデル(f16=バッファが小さい)を既定にし、
+// もし出力が「!!!!」に化ける端末では f32 版に切り替えられるよう両方を用意する。
+// ・f16 = バッファが小さく読込しやすいが、一部GPUで数値が不安定
+// ・f32 = 数値は安定するがバッファが大きく、読込に失敗しやすい
+// ⚠「Buffer was unmapped...」はデバイスロスト/バッファ破棄で、モデルの大小と無関係に起きうる。
 export const MODELS = [
   {
-    id: 'Qwen2.5-3B-Instruct-q4f32_1-MLC',
-    label: 'Qwen2.5 3B(既定・推奨)',
-    note: 'DL約2GB / VRAM約2.9GB。実機で安定して動く中で最も高品質。日本語・要約・推論に強い',
+    id: 'gemma-2-2b-jpn-it-q4f16_1-MLC',
+    label: 'Gemma 2 2B 日本語版(既定・最も載りやすい)',
+    note: 'DL約1.4GB / VRAM約1.9GB。Google の日本語モデル。まずはこれで動作確認を',
+  },
+  {
+    id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC',
+    label: 'Qwen2.5 1.5B(超軽量・高速)',
+    note: 'DL約1GB / VRAM約1.6GB。最も軽い。読込に失敗するならこれを試す',
+  },
+  {
+    id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC',
+    label: 'Llama 3.2 1B(最小・最終手段)',
+    note: 'DL約0.7GB / VRAM約0.9GB。最小構成。これでも失敗するなら端末/ブラウザ側の問題',
+  },
+  {
+    id: 'Qwen2.5-3B-Instruct-q4f16_1-MLC',
+    label: 'Qwen2.5 3B(高品質)',
+    note: 'DL約2GB / VRAM約2.5GB。より賢いが少し重い。安定動作を確認できたら',
   },
   {
     id: 'gemma-2-2b-jpn-it-q4f32_1-MLC',
-    label: 'Gemma 2 2B 日本語版(最も安定)',
-    note: 'DL約1.4GB / VRAM約2.5GB。Google の日本語チューニング済み。困ったらこれ',
+    label: 'Gemma 2 2B 日本語版・安定版(f32)',
+    note: 'DL約1.4GB / VRAM約2.5GB。出力が「!!!!」に化ける場合はこの f32 版を使う',
   },
   {
-    id: 'Qwen2.5-1.5B-Instruct-q4f32_1-MLC',
-    label: 'Qwen2.5 1.5B(超軽量)',
-    note: 'DL約1GB / VRAM約1.9GB。最も軽く高速。低スペック端末向け',
-  },
-  {
-    id: 'Qwen2.5-7B-Instruct-q4f32_1-MLC',
-    label: 'Qwen2.5 7B(大型・端末により失敗)',
-    note: 'DL約4.5GB / VRAM約5.9GB。最高品質だがモバイルGPUの上限を超えやすく、読込に失敗する端末が多い',
-  },
-  {
-    id: 'Qwen3.5-9B-q4f32_1-MLC',
-    label: 'Qwen3.5 9B(実験・最大)',
-    note: 'DL約5.5GB / VRAM約7.5GB。ハイエンドPC向け。スマホではほぼ読込失敗します',
+    id: 'Qwen2.5-3B-Instruct-q4f32_1-MLC',
+    label: 'Qwen2.5 3B・安定版(f32)',
+    note: 'DL約2GB / VRAM約2.9GB。高品質かつ数値安定だが最も重い',
   },
 ]
 
@@ -59,6 +64,25 @@ export function currentModel() {
   return MODELS.find((m) => m.id === currentModelId) || null
 }
 
+// 端末の WebGPU 情報を取得(診断用)。読込失敗時の原因切り分けに使う。
+export async function getGpuDiagnostics() {
+  try {
+    if (!('gpu' in navigator)) return 'navigator.gpu なし(WebGPU非対応)'
+    const adapter = await navigator.gpu.requestAdapter()
+    if (!adapter) return 'GPUアダプタ取得不可(requestAdapter が null)'
+    const L = adapter.limits
+    const mb = (n) => (n ? `${Math.round(n / 1048576)}MB` : '不明')
+    const info = adapter.info || {}
+    return [
+      `GPU: ${info.vendor || '?'} / ${info.architecture || info.description || '?'}`,
+      `maxBufferSize: ${mb(L.maxBufferSize)}`,
+      `maxStorageBufferBindingSize: ${mb(L.maxStorageBufferBindingSize)}`,
+    ].join('\n')
+  } catch (e) {
+    return `診断取得エラー: ${e?.message || e}`
+  }
+}
+
 export async function loadModel(modelId, onProgress) {
   // 前のエンジンが GPU バッファを掴んだままだと再ロード時に破棄競合が起きるため、明示的に解放する
   if (engine) {
@@ -70,9 +94,21 @@ export async function loadModel(modelId, onProgress) {
   }
   engine = null
   currentModelId = null
-  engine = await CreateMLCEngine(modelId, {
-    initProgressCallback: (p) => onProgress?.(p),
-  })
+  try {
+    engine = await CreateMLCEngine(modelId, {
+      initProgressCallback: (p) => onProgress?.(p),
+    })
+  } catch (err) {
+    // 失敗時はエンジンを確実に破棄し、次の試行が汚染された状態を引き継がないようにする
+    try {
+      await engine?.unload?.()
+    } catch {
+      /* noop */
+    }
+    engine = null
+    currentModelId = null
+    throw err
+  }
   currentModelId = modelId
   saveModel(modelId)
   return engine
