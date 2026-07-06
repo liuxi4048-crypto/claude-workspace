@@ -5,6 +5,7 @@ import {
   loadModel,
   clearModelCache,
   currentModel,
+  getGpuDiagnostics,
 } from './llm.js'
 import { initChat } from './modes/chat.js'
 import { initSummarize } from './modes/summarize.js'
@@ -72,14 +73,15 @@ async function startLoad(modelId) {
     badge.hidden = false
   } catch (err) {
     const msg = String(err?.message || err)
-    // WebGPU のバッファ確保失敗 = モデルが端末のGPUメモリ上限を超えている
-    const isGpuMemory =
-      /mapAsync|unmapped|out of memory|OOM|buffer|allocation|createBuffer|exceeds/i.test(msg)
-    progressText.textContent = isGpuMemory
-      ? `このモデルは端末のGPUメモリ上限を超えて読み込めませんでした。\n` +
-        `より軽量なモデル(Gemma 2 2B 日本語版 など)を選んで再試行してください。\n` +
-        `※スマホのGPUはRAMが大きくても大型モデルを載せられないことがあります。\n(詳細: ${msg})`
-      : `ロードに失敗しました: ${msg}\n軽量なモデルを選んで再試行してください。`
+    const isBufferErr = /mapAsync|unmapped|device.*lost|out of memory|OOM|createBuffer/i.test(msg)
+    const diag = await getGpuDiagnostics()
+    progressText.textContent =
+      (isBufferErr
+        ? `モデルの読み込みに失敗しました(GPUバッファ/デバイス関連)。\n` +
+          `別のモデル(まず「Qwen2.5 1.5B」や「Llama 3.2 1B」)を選んで再試行してください。\n` +
+          `それでも同じ場合は、この画面をスクリーンショットして共有してください。\n`
+        : `ロードに失敗しました。別のモデルで再試行してください。\n`) +
+      `\n【エラー詳細】\n${msg}\n\n【端末のGPU情報】\n${diag}`
     progressFill.style.width = '0%'
   } finally {
     loadBtn.disabled = false
