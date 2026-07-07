@@ -1,13 +1,6 @@
-// エントリポイント: モデルロード・タブ制御・設定
-// (推論はCPU/WASMで動くのでWebGPU判定は撤廃)
-import {
-  MODELS,
-  getSavedModel,
-  loadModel,
-  clearModelCache,
-  currentModel,
-  getGpuDiagnostics,
-} from './llm.js'
+// エントリポイント: タブ制御 + バックエンド疎通確認
+// (推論はクラウドなので、モデルのロードやWebGPU判定は不要)
+import { checkBackend, backendStatusText } from './llm.js'
 import { initChat } from './modes/chat.js'
 import { initSummarize } from './modes/summarize.js'
 import { initCalc } from './modes/calc.js'
@@ -15,17 +8,6 @@ import './style.css'
 
 function $(id) {
   return document.getElementById(id)
-}
-
-function fillModelSelect(selectEl, selected) {
-  selectEl.innerHTML = ''
-  for (const m of MODELS) {
-    const opt = document.createElement('option')
-    opt.value = m.id
-    opt.textContent = m.label
-    if (m.id === selected) opt.selected = true
-    selectEl.appendChild(opt)
-  }
 }
 
 function setupTabs() {
@@ -41,82 +23,26 @@ function setupTabs() {
   )
 }
 
-async function startLoad(modelId) {
-  const loadBtn = $('btn-load')
-  const progressWrap = $('load-progress')
-  const progressFill = $('progress-fill')
-  const progressText = $('progress-text')
-
-  loadBtn.disabled = true
-  progressWrap.hidden = false
-  progressText.textContent = '準備中…'
-
-  try {
-    await loadModel(modelId, (p) => {
-      progressFill.style.width = `${Math.round((p.progress || 0) * 100)}%`
-      progressText.textContent = p.text || ''
-    })
-    // ロード完了 → メインUIへ
-    $('load-panel').hidden = true
-    $('main-ui').hidden = false
-    const badge = $('model-badge')
-    badge.textContent = currentModel()?.label?.split('(')[0]?.trim() || modelId
-    badge.hidden = false
-  } catch (err) {
-    const msg = String(err?.message || err)
-    const diag = await getGpuDiagnostics()
-    progressText.textContent =
-      `モデルの読み込みに失敗しました。\n` +
-      `より軽量なモデル(SmolLM2 360M など)を選んで再試行してください。\n\n` +
-      `【エラー詳細】\n${msg}\n\n【推論エンジン情報】\n${diag}`
-    progressFill.style.width = '0%'
-  } finally {
-    loadBtn.disabled = false
-  }
-}
-
-function setupSettings() {
-  const dialog = $('settings-dialog')
-  const select = $('settings-model-select')
-  $('btn-settings').addEventListener('click', () => {
-    fillModelSelect(select, getSavedModel())
-    dialog.showModal()
-  })
-  $('btn-close-settings').addEventListener('click', () => dialog.close())
-  $('btn-reload-model').addEventListener('click', () => {
-    dialog.close()
-    // ロードパネルに戻して選択モデルで再ロード
-    $('main-ui').hidden = true
-    $('load-panel').hidden = false
-    fillModelSelect($('model-select'), select.value)
-    updateModelNote(select.value)
-    startLoad(select.value)
-  })
-  $('btn-clear-cache').addEventListener('click', async () => {
-    if (!confirm('ダウンロード済みのモデルをすべて削除しますか?(次回また数GBのダウンロードが必要になります)')) return
-    await clearModelCache()
-    alert('モデルキャッシュを削除しました')
-  })
-}
-
-function updateModelNote(modelId) {
-  const m = MODELS.find((x) => x.id === modelId)
-  $('model-note').textContent = m ? m.note : ''
-}
-
 async function main() {
   setupTabs()
   initChat()
   initSummarize()
   initCalc()
-  setupSettings()
 
-  const modelSelect = $('model-select')
-  fillModelSelect(modelSelect, getSavedModel())
-  updateModelNote(modelSelect.value)
-  modelSelect.addEventListener('change', () => updateModelNote(modelSelect.value))
-
-  $('btn-load').addEventListener('click', () => startLoad(modelSelect.value))
+  // バックエンド(Vercel関数 + Gemini)への疎通確認
+  const status = await checkBackend()
+  const badge = $('backend-badge')
+  if (status.ok) {
+    badge.textContent = `☁️ ${status.model || 'Gemini'}`
+    badge.hidden = false
+  } else {
+    $('backend-warning-text').textContent = backendStatusText()
+    $('backend-warning').hidden = false
+    // 送信系ボタンを無効化
+    document.querySelectorAll('#chat-send, #sum-run, #calc-form button[type=submit]').forEach((b) => {
+      b.disabled = true
+    })
+  }
 }
 
 main()
