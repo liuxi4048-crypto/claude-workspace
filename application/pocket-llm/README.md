@@ -9,6 +9,11 @@ AIモデルはあなたの端末内だけで動き、入力テキストは一切
     （初回のみ Settings → Pages → Source を `gh-pages` ブランチ/`root` に設定して有効化が必要）
   - Vercel(本番): master への push で自動デプロイ。プロジェクトの本番URL直下で配信
 
+> **表示が古いままの場合**: GitHub Pages 側のデプロイが `Deployment failed, try again later.`
+> で一時的に失敗し、1つ前のバージョンのまま配信され続けることがあります(シークレットタブでも
+> 再現する場合はこれが原因)。`application/pocket-llm/` 配下に変更を加えて再度 push すると
+> 再デプロイがトリガーされ、直ります。
+
 ## 📱 スマホでの使い方
 
 1. Android の **Chrome(121以降)** で公開URLを開く
