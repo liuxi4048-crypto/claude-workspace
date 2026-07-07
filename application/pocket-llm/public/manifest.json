@@ -1,7 +1,7 @@
 {
-  "name": "Pocket LLM — スマホで動くローカルAI",
+  "name": "Pocket LLM — スマホで使えるAIアシスタント",
   "short_name": "Pocket LLM",
-  "description": "ブラウザ内でローカルLLMを実行。要約・計算・チャットが完全オフライン&プライベート。",
+  "description": "スマホから使えるAIアシスタント。要約・計算・チャットをどの端末でも軽快に。",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

@@ -1,6 +1,6 @@
-// Pocket LLM Service Worker — アプリシェルをキャッシュしてオフライン起動を可能にする
-// (モデル本体は WebLLM が Cache API に別途保存する)
-const CACHE_NAME = 'pocket-llm-shell-v1'
+// Pocket LLM Service Worker — アプリシェル(HTML/JS/CSS)をキャッシュして高速起動する。
+// 推論はクラウド(/api/*)なので、API応答はキャッシュせず常にネットワークへ通す。
+const CACHE_NAME = 'pocket-llm-shell-v2'
 
 self.addEventListener('install', (event) => {
   self.skipWaiting()
@@ -24,8 +24,9 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
-  // 同一オリジンの GET のみ対象(モデルDL等の外部リクエストは素通し)
+  // 同一オリジンの GET のみ対象(APIや外部リクエストは素通し)
   if (event.request.method !== 'GET' || url.origin !== self.location.origin) return
+  if (url.pathname.startsWith('/api/')) return
 
   // ネットワーク優先 + キャッシュフォールバック(オフライン時はキャッシュから起動)
   event.respondWith(
