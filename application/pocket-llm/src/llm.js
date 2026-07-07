@@ -1,42 +1,44 @@
-// WebLLM エンジン管理: モデル定義・ロード・ストリーミング生成
-import { CreateMLCEngine, deleteModelAllInfoInCache } from '@mlc-ai/web-llm'
+// 推論エンジン管理: Transformers.js を CPU(WASM) で駆動する。
+//
+// 経緯: 当初は @mlc-ai/web-llm (WebGPU) を使っていたが、モバイルChromeの
+// WebGPUドライバとの相性で以下2つの症状が交互に出て安定しなかった:
+//   - f16モデル → 「!!!!」や <pad> トークン混入(f16数値不安定)
+//   - f32モデル → "Buffer was unmapped before mapping was resolved"
+//                (web-llm 側の既知バグ・未解決)
+// そのため WebGPU を撤廃し、Transformers.js の WASM(CPU)推論に移行。
+// 速度は遅いが「動く/動かない」のバラツキがなく、確実に応答が返る。
+import {
+  pipeline,
+  TextStreamer,
+  InterruptableStoppingCriteria,
+  env,
+} from '@huggingface/transformers'
 
-// スマホ向けモデルカタログ(web-llm prebuilt)。
-// 方針: まず「確実に載る」ことを最優先。最小・成熟モデル(f16=バッファが小さい)を既定にし、
-// もし出力が「!!!!」に化ける端末では f32 版に切り替えられるよう両方を用意する。
-// ・f16 = バッファが小さく読込しやすいが、一部GPUで数値が不安定
-// ・f32 = 数値は安定するがバッファが大きく、読込に失敗しやすい
-// ⚠「Buffer was unmapped...」はデバイスロスト/バッファ破棄で、モデルの大小と無関係に起きうる。
+// WASM専用に固定(WebGPUの罠を回避)
+env.backends.onnx.wasm.numThreads = navigator.hardwareConcurrency
+  ? Math.min(navigator.hardwareConcurrency, 4)
+  : 2
+
 export const MODELS = [
   {
-    id: 'gemma-2-2b-jpn-it-q4f16_1-MLC',
-    label: 'Gemma 2 2B 日本語版(既定・最も載りやすい)',
-    note: 'DL約1.4GB / VRAM約1.9GB。Google の日本語モデル。まずはこれで動作確認を',
+    id: 'HuggingFaceTB/SmolLM2-360M-Instruct',
+    label: 'SmolLM2 360M(既定・最速)',
+    note: 'DL約0.3GB。CPUでも軽快に動く最小構成。まずはこれで動作確認',
   },
   {
-    id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC',
-    label: 'Qwen2.5 1.5B(超軽量・高速)',
-    note: 'DL約1GB / VRAM約1.6GB。最も軽い。読込に失敗するならこれを試す',
+    id: 'onnx-community/Qwen2.5-0.5B-Instruct',
+    label: 'Qwen2.5 0.5B(バランス)',
+    note: 'DL約0.4GB。軽さと賢さのバランス。日本語もそれなりに扱える',
   },
   {
-    id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC',
-    label: 'Llama 3.2 1B(最小・最終手段)',
-    note: 'DL約0.7GB / VRAM約0.9GB。最小構成。これでも失敗するなら端末/ブラウザ側の問題',
+    id: 'HuggingFaceTB/SmolLM2-1.7B-Instruct',
+    label: 'SmolLM2 1.7B(高品質・重め)',
+    note: 'DL約1GB。より賢い応答だが CPU では遅め(スマホで数トークン/秒)',
   },
   {
-    id: 'Qwen2.5-3B-Instruct-q4f16_1-MLC',
-    label: 'Qwen2.5 3B(高品質)',
-    note: 'DL約2GB / VRAM約2.5GB。より賢いが少し重い。安定動作を確認できたら',
-  },
-  {
-    id: 'gemma-2-2b-jpn-it-q4f32_1-MLC',
-    label: 'Gemma 2 2B 日本語版・安定版(f32)',
-    note: 'DL約1.4GB / VRAM約2.5GB。出力が「!!!!」に化ける場合はこの f32 版を使う',
-  },
-  {
-    id: 'Qwen2.5-3B-Instruct-q4f32_1-MLC',
-    label: 'Qwen2.5 3B・安定版(f32)',
-    note: 'DL約2GB / VRAM約2.9GB。高品質かつ数値安定だが最も重い',
+    id: 'onnx-community/Qwen2.5-1.5B-Instruct',
+    label: 'Qwen2.5 1.5B(高品質・重め)',
+    note: 'DL約1GB。日本語に強い。CPU推論なので待ち時間長め',
   },
 ]
 
@@ -52,135 +54,73 @@ export function saveModel(id) {
   localStorage.setItem(MODEL_STORE_KEY, id)
 }
 
-let engine = null
+let generator = null
 let currentModelId = null
-let aborted = false
+let stopper = null
 
 export function isReady() {
-  return engine !== null
+  return generator !== null
 }
 
 export function currentModel() {
   return MODELS.find((m) => m.id === currentModelId) || null
 }
 
-// 端末の WebGPU 情報を取得(診断用)。読込失敗時の原因切り分けに使う。
-export async function getGpuDiagnostics() {
-  try {
-    if (!('gpu' in navigator)) return 'navigator.gpu なし(WebGPU非対応)'
-    const adapter = await navigator.gpu.requestAdapter()
-    if (!adapter) return 'GPUアダプタ取得不可(requestAdapter が null)'
-    const L = adapter.limits
-    const mb = (n) => (n ? `${Math.round(n / 1048576)}MB` : '不明')
-    const info = adapter.info || {}
-    return [
-      `GPU: ${info.vendor || '?'} / ${info.architecture || info.description || '?'}`,
-      `maxBufferSize: ${mb(L.maxBufferSize)}`,
-      `maxStorageBufferBindingSize: ${mb(L.maxStorageBufferBindingSize)}`,
-    ].join('\n')
-  } catch (e) {
-    return `診断取得エラー: ${e?.message || e}`
-  }
-}
-
 export async function loadModel(modelId, onProgress) {
-  // 前のエンジンが GPU バッファを掴んだままだと再ロード時に破棄競合が起きるため、明示的に解放する
-  if (engine) {
+  // 前のモデルを破棄
+  if (generator) {
     try {
-      await engine.unload()
-    } catch {
-      /* 解放失敗は無視して続行 */
-    }
-  }
-  engine = null
-  currentModelId = null
-  try {
-    engine = await CreateMLCEngine(modelId, {
-      initProgressCallback: (p) => onProgress?.(p),
-    })
-  } catch (err) {
-    // 失敗時はエンジンを確実に破棄し、次の試行が汚染された状態を引き継がないようにする
-    try {
-      await engine?.unload?.()
+      await generator.dispose?.()
     } catch {
       /* noop */
     }
-    engine = null
+  }
+  generator = null
+  currentModelId = null
+  try {
+    generator = await pipeline('text-generation', modelId, {
+      device: 'wasm',
+      dtype: 'q4',
+      progress_callback: (data) => {
+        if (data.status === 'progress') {
+          onProgress?.({
+            progress: (data.progress || 0) / 100,
+            text: `${data.file || 'モデル'}: ${Math.round(data.progress || 0)}%`,
+          })
+        } else if (data.status === 'ready') {
+          onProgress?.({ progress: 1, text: '準備完了' })
+        }
+      },
+    })
+  } catch (err) {
+    generator = null
     currentModelId = null
     throw err
   }
   currentModelId = modelId
   saveModel(modelId)
-  return engine
+  return generator
 }
 
 export async function clearModelCache() {
-  for (const m of MODELS) {
+  // Transformers.js はブラウザの Cache Storage を使う
+  if ('caches' in self) {
     try {
-      await deleteModelAllInfoInCache(m.id)
+      const keys = await caches.keys()
+      await Promise.all(
+        keys.filter((k) => /transformers|huggingface|models/i.test(k)).map((k) => caches.delete(k))
+      )
     } catch {
-      /* 未キャッシュのモデルは無視 */
+      /* noop */
     }
   }
 }
 
 export function stopGeneration() {
-  aborted = true
-  engine?.interruptGenerate()
+  stopper?.interrupt()
 }
 
-// Qwen3 系の <think>...</think> ブロックを表示から除去しつつストリームする
-export async function* streamChat(messages, opts = {}) {
-  if (!engine) throw new Error('モデルが未ロードです')
-  aborted = false
-  const chunks = await engine.chat.completions.create({
-    messages,
-    stream: true,
-    temperature: opts.temperature ?? 0.7,
-    max_tokens: opts.maxTokens ?? 1024,
-    extra_body: { enable_thinking: false },
-  })
-  let buf = ''
-  let inThink = false
-  for await (const chunk of chunks) {
-    if (aborted) break
-    const delta = chunk.choices[0]?.delta?.content || ''
-    if (!delta) continue
-    buf += delta
-    // <think> タグの途中でチャンクが切れる場合に備えてバッファ処理
-    let out = ''
-    while (buf.length > 0) {
-      if (inThink) {
-        const end = buf.indexOf('</think>')
-        if (end === -1) {
-          buf = buf.slice(-10) // タグ断片だけ残して捨てる
-          break
-        }
-        buf = buf.slice(end + 8)
-        inThink = false
-      } else {
-        const start = buf.indexOf('<think>')
-        if (start === -1) {
-          // タグの先頭断片かもしれない末尾は保留する
-          const safeLen = buf.length - 7
-          if (safeLen > 0) {
-            out += buf.slice(0, safeLen)
-            buf = buf.slice(safeLen)
-          }
-          break
-        }
-        out += buf.slice(0, start)
-        buf = buf.slice(start + 7)
-        inThink = true
-      }
-    }
-    if (out) yield out
-  }
-  // ストリーム終了後、保留分を出力
-  if (!inThink && buf && !buf.includes('<think')) yield buf
-}
-
-// f16モデルの数値不安定などで出力が壊れている(特殊トークン混入・記号の羅列)兆候を検知する
+// f16 の数値不安定は WASM経路では発生しないため、破損検知は無害な保険として残す
 export function looksCorrupted(text) {
   if (!text) return false
   const specialTokenHit = /<pad>|<unk>|<\|[^|]*\|>|\[PAD\]|\[UNK\]/i.test(text)
@@ -189,15 +129,53 @@ export function looksCorrupted(text) {
 }
 
 export const CORRUPTION_WARNING =
-  '⚠ 応答に異常な文字列が含まれています。モデルの出力が不安定になっている可能性があります。' +
-  '⚙️設定から同じモデルの「安定版(f32)」、または別のモデルに切り替えてください。'
+  '⚠ 応答に異常な文字列が含まれています。別のモデルを試すか、履歴をクリアしてやり直してください。'
 
-// ストリーム全体を文字列に集約(コールバックで途中経過を通知)
+/**
+ * チャットメッセージから応答を生成する。
+ * onToken(cumulativeText) がストリーミング途中で呼ばれる。
+ * 戻り値: 最終応答テキスト。
+ */
 export async function generate(messages, onToken, opts = {}) {
+  if (!generator) throw new Error('モデルが未ロードです')
+  stopper = new InterruptableStoppingCriteria()
+
   let text = ''
-  for await (const tok of streamChat(messages, opts)) {
-    text += tok
-    onToken?.(text)
+  const streamer = new TextStreamer(generator.tokenizer, {
+    skip_prompt: true,
+    skip_special_tokens: true,
+    callback_function: (chunk) => {
+      text += chunk
+      onToken?.(text)
+    },
+  })
+
+  const output = await generator(messages, {
+    max_new_tokens: opts.maxTokens ?? 512,
+    do_sample: (opts.temperature ?? 0.7) > 0,
+    temperature: opts.temperature ?? 0.7,
+    top_p: 0.9,
+    repetition_penalty: 1.1,
+    streamer,
+    stopping_criteria: stopper,
+    return_full_text: false,
+  })
+
+  stopper = null
+
+  // ストリーマから拾えなかった場合の保険: output の内容を最終テキストに
+  if (!text && Array.isArray(output) && output.length > 0) {
+    const generated = output[0].generated_text
+    if (typeof generated === 'string') text = generated
+    else if (Array.isArray(generated)) {
+      const last = generated[generated.length - 1]
+      text = last?.content || ''
+    }
   }
   return text.trim()
+}
+
+// GPU情報はもう不要だが、UIから呼ばれているため空実装で維持
+export async function getGpuDiagnostics() {
+  return `推論エンジン: Transformers.js (CPU / WASM)\nスレッド数: ${env.backends.onnx.wasm.numThreads}`
 }

@@ -42,25 +42,24 @@ await check('ヘッダー表示', async () => {
   if (!h.includes('Pocket LLM')) throw new Error(h)
 })
 
-await check('WebGPU 判定(コンテナではGPU無し想定)', async () => {
-  const hasGpu = await page.evaluate(async () => {
-    if (!('gpu' in navigator)) return false
-    try { return (await navigator.gpu.requestAdapter()) !== null } catch { return false }
-  })
-  const warnHidden = await page.$eval('#webgpu-warning', (el) => el.hidden)
-  console.log(`   (WebGPU available: ${hasGpu}, warning hidden: ${warnHidden})`)
-  // GPUあり→警告は隠れる(hidden=true)、GPUなし→警告表示(hidden=false)
-  if (hasGpu !== warnHidden) throw new Error('WebGPU 有無と警告表示が不整合')
+await check('WebGPU 案内パネルは撤去済み', async () => {
+  const el = await page.$('#webgpu-warning')
+  if (el) throw new Error('#webgpu-warning が残存')
 })
 
-await check('モデル選択肢が6件', async () => {
+await check('モデル選択肢が4件(全て CPU/WASM 対応)', async () => {
   const n = await page.$$eval('#model-select option', (o) => o.length)
-  if (n !== 6) throw new Error(`options=${n}`)
+  if (n !== 4) throw new Error(`options=${n}`)
 })
 
-await check('既定は最も載りやすい gemma-2-2b-jpn(f16)', async () => {
+await check('既定は SmolLM2 360M(CPU軽量・最速)', async () => {
   const v = await page.$eval('#model-select', (el) => el.value)
-  if (v !== 'gemma-2-2b-jpn-it-q4f16_1-MLC') throw new Error(v)
+  if (v !== 'HuggingFaceTB/SmolLM2-360M-Instruct') throw new Error(v)
+})
+
+await check('ロード用ヒントに「CPU」の記述がある', async () => {
+  const t = await page.textContent('#load-panel')
+  if (!t.includes('CPU')) throw new Error('CPU の記述なし')
 })
 
 // タブUI はモデルロード後に表示されるため、検証用に強制表示して切替を確認

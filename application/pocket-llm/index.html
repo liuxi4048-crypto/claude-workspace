@@ -20,27 +20,16 @@
         </div>
       </header>
 
-      <!-- WebGPU 非対応時の案内 -->
-      <div id="webgpu-warning" class="panel warn" hidden>
-        <h2>⚠️ WebGPU が利用できません</h2>
-        <p>このアプリはブラウザ内でAIモデルを動かすために WebGPU が必要です。</p>
-        <ul>
-          <li>Android では <strong>Chrome 121 以降</strong>をご利用ください(Playストアで Chrome を更新)</li>
-          <li>それでも動かない場合は、Chrome のアドレスバーに <code>chrome://flags</code> と入力し、「<strong>Unsafe WebGPU</strong>」を Enabled にして再起動してください</li>
-          <li>Samsung Internet / 古い WebView ブラウザは非対応の場合があります</li>
-        </ul>
-      </div>
-
       <!-- モデルロードパネル -->
       <div id="load-panel" class="panel">
         <h2>モデルをロード</h2>
-        <p class="hint">初回はモデル(数GB)をダウンロードします。<strong>Wi-Fi 接続を推奨</strong>。2回目以降は端末内キャッシュから読み込み、オフラインでも動作します。</p>
+        <p class="hint">推論は<strong>端末のCPU</strong>で動作します(WebGPU不使用・安定重視)。初回はモデル(0.3〜1GB)をダウンロード。<strong>Wi-Fi推奨</strong>。2回目以降は端末内キャッシュから読み込みオフラインでも動きます。</p>
         <label class="field">
           <span>モデル選択</span>
           <select id="model-select"></select>
         </label>
         <p id="model-note" class="hint"></p>
-        <p class="hint">💡 読込に失敗する場合は、より小さいモデル(Qwen2.5 1.5B → Llama 3.2 1B)を順に試してください。応答が「!!!!」に化ける場合は「…安定版(f32)」を選んでください。エラー時は画面にGPU情報が表示されます。</p>
+        <p class="hint">💡 CPU推論なので応答は「トークン単位で少しずつ」出ます。速さより「必ず動く」を優先した設計です。</p>
         <button id="btn-load" class="primary">モデルをロードする</button>
         <div id="load-progress" hidden>
           <div class="progress-bar"><div id="progress-fill"></div></div>

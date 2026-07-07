@@ -1,4 +1,5 @@
-// エントリポイント: WebGPU 判定・モデルロード・タブ制御・設定
+// エントリポイント: モデルロード・タブ制御・設定
+// (推論はCPU/WASMで動くのでWebGPU判定は撤廃)
 import {
   MODELS,
   getSavedModel,
@@ -24,16 +25,6 @@ function fillModelSelect(selectEl, selected) {
     opt.textContent = m.label
     if (m.id === selected) opt.selected = true
     selectEl.appendChild(opt)
-  }
-}
-
-async function checkWebGPU() {
-  if (!('gpu' in navigator)) return false
-  try {
-    const adapter = await navigator.gpu.requestAdapter()
-    return adapter !== null
-  } catch {
-    return false
   }
 }
 
@@ -73,15 +64,11 @@ async function startLoad(modelId) {
     badge.hidden = false
   } catch (err) {
     const msg = String(err?.message || err)
-    const isBufferErr = /mapAsync|unmapped|device.*lost|out of memory|OOM|createBuffer/i.test(msg)
     const diag = await getGpuDiagnostics()
     progressText.textContent =
-      (isBufferErr
-        ? `モデルの読み込みに失敗しました(GPUバッファ/デバイス関連)。\n` +
-          `別のモデル(まず「Qwen2.5 1.5B」や「Llama 3.2 1B」)を選んで再試行してください。\n` +
-          `それでも同じ場合は、この画面をスクリーンショットして共有してください。\n`
-        : `ロードに失敗しました。別のモデルで再試行してください。\n`) +
-      `\n【エラー詳細】\n${msg}\n\n【端末のGPU情報】\n${diag}`
+      `モデルの読み込みに失敗しました。\n` +
+      `より軽量なモデル(SmolLM2 360M など)を選んで再試行してください。\n\n` +
+      `【エラー詳細】\n${msg}\n\n【推論エンジン情報】\n${diag}`
     progressFill.style.width = '0%'
   } finally {
     loadBtn.disabled = false
@@ -128,15 +115,6 @@ async function main() {
   fillModelSelect(modelSelect, getSavedModel())
   updateModelNote(modelSelect.value)
   modelSelect.addEventListener('change', () => updateModelNote(modelSelect.value))
-
-  const hasWebGPU = await checkWebGPU()
-  if (!hasWebGPU) {
-    $('webgpu-warning').hidden = false
-    $('btn-load').disabled = true
-    $('load-panel').querySelector('.hint').textContent =
-      'WebGPU が有効になるとここからモデルをロードできます。'
-    return
-  }
 
   $('btn-load').addEventListener('click', () => startLoad(modelSelect.value))
 }
