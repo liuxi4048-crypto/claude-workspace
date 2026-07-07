@@ -1,5 +1,5 @@
 // 要約モード: 貼り付けテキストをスタイル指定で要約
-import { generate, stopGeneration, isReady } from '../llm.js'
+import { generate, stopGeneration, isReady, looksCorrupted, CORRUPTION_WARNING } from '../llm.js'
 
 export const CHAR_LIMIT = 6000
 
@@ -71,6 +71,9 @@ export function initSummarize() {
         { temperature: 0.3 }
       )
       output.textContent = summary || '(要約が生成されませんでした)'
+      if (looksCorrupted(summary)) {
+        output.textContent += `\n\n${CORRUPTION_WARNING}`
+      }
     } catch (err) {
       output.textContent = `エラー: ${err.message}`
     } finally {

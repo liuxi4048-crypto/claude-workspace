@@ -1,5 +1,5 @@
 // 計算モード: 数式は電卓エンジンで正確に、文章題は LLM で
-import { generate, stopGeneration, isReady } from '../llm.js'
+import { generate, stopGeneration, isReady, looksCorrupted, CORRUPTION_WARNING } from '../llm.js'
 import { looksLikeMath, evaluate, formatResult } from '../mathparser.js'
 
 let generating = false
@@ -59,7 +59,9 @@ export function initCalc() {
       output.textContent = answer || '(応答が生成されませんでした)'
       const note = document.createElement('p')
       note.className = 'hint'
-      note.textContent = '⚠ AIによる解答です。重要な計算は電卓で検算してください(数式だけ入力すると正確に計算します)'
+      note.textContent = looksCorrupted(answer)
+        ? CORRUPTION_WARNING
+        : '⚠ AIによる解答です。重要な計算は電卓で検算してください(数式だけ入力すると正確に計算します)'
       output.appendChild(note)
     } catch (err) {
       output.textContent = `エラー: ${err.message}`

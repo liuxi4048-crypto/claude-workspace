@@ -1,5 +1,5 @@
 // チャットモード: ストリーミング応答 + localStorage 履歴
-import { generate, stopGeneration, isReady } from '../llm.js'
+import { generate, stopGeneration, isReady, looksCorrupted, CORRUPTION_WARNING } from '../llm.js'
 
 const HISTORY_KEY = 'pocket-llm.chat-history'
 const SYSTEM_PROMPT =
@@ -68,6 +68,10 @@ export function initChat() {
         messagesEl.scrollTop = messagesEl.scrollHeight
       })
       bubble.textContent = reply || '(応答が生成されませんでした)'
+      if (looksCorrupted(reply)) {
+        bubble.textContent += `\n\n${CORRUPTION_WARNING}`
+        bubble.classList.add('error')
+      }
       history.push({ role: 'assistant', content: reply })
       saveHistory()
     } catch (err) {
