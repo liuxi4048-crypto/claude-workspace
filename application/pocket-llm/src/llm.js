@@ -180,6 +180,18 @@ export async function* streamChat(messages, opts = {}) {
   if (!inThink && buf && !buf.includes('<think')) yield buf
 }
 
+// f16モデルの数値不安定などで出力が壊れている(特殊トークン混入・記号の羅列)兆候を検知する
+export function looksCorrupted(text) {
+  if (!text) return false
+  const specialTokenHit = /<pad>|<unk>|<\|[^|]*\|>|\[PAD\]|\[UNK\]/i.test(text)
+  const symbolSpam = /([!?#*_~])\1{4,}/.test(text)
+  return specialTokenHit || symbolSpam
+}
+
+export const CORRUPTION_WARNING =
+  '⚠ 応答に異常な文字列が含まれています。モデルの出力が不安定になっている可能性があります。' +
+  '⚙️設定から同じモデルの「安定版(f32)」、または別のモデルに切り替えてください。'
+
 // ストリーム全体を文字列に集約(コールバックで途中経過を通知)
 export async function generate(messages, onToken, opts = {}) {
   let text = ''
