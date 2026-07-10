@@ -39,3 +39,24 @@
 - P1（当日）: 5万円超の予算・新規契約 → ユーザー承認必要
 - P2（日報）: 遅延・方針変更 → 日報で報告
 - P3（不要）: 日常業務 → チームで自律完結
+
+## Codex 分業フロー（ChatGPT/GPT-5系・APIキー手入力不要）
+
+Claude が指示し、ChatGPT（Codex CLI）が実装、Claude がテスト・修正指示を行う分業フロー。
+実体は自作 MCP サーバー `mcp/codex/`（詳細: `mcp/codex/README.md`）。
+
+### 起動方法
+- `/codex-task <タスク内容>` と入力するだけで起動
+
+### 前提
+- `npm install -g @openai/codex` → `codex login`（ChatGPTアカウントでOAuthサインイン）済みであること
+- OpenAI API キーの手入力は不要（ChatGPTプランの利用上限は適用される）
+
+### フロー概要
+1. Claude がタスク契約（目的・受入条件・変更可能ファイル等）を作成
+2. Codex が**専用 git worktree**（元リポジトリとは分離、push用資格情報なし）で実装
+3. Claude が差分レビュー・テストで判定
+4. 失敗時は圧縮した失敗証跡で Codex に再依頼（進捗が出なければ早期打ち切り）
+5. 合格後、work_logs/ に記録し worktree 内でコミット。**元リポジトリへの統合・push はユーザー確認後**
+
+詳細は `.claude/skills/codex-task/SKILL.md`、`.claude/agents/codex-worker.md` を参照。
