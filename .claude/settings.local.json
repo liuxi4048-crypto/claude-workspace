@@ -236,7 +236,10 @@
       "mcp__computer-use__zoom",
       "PowerShell(Get-ChildItem \"C:\\\\Users\" -Name; echo \"---\"; $env:USERNAME; echo \"---\"; Get-ChildItem \"$env:USERPROFILE\\\\.claude\" -Name -ErrorAction SilentlyContinue)",
       "PowerShell($token = \\(Get-Content \"C:\\\\Users\\\\user\\\\.claude\\\\.credentials.json\" | ConvertFrom-Json\\).github_token 2>$null; if \\($token\\) { \"token found\" } else { \"no token\" })",
-      "PowerShell($env:GITHUB_TOKEN; [System.Environment]::GetEnvironmentVariable\\(\"GITHUB_TOKEN\", \"User\"\\); [System.Environment]::GetEnvironmentVariable\\(\"GH_TOKEN\", \"User\"\\))"
+      "PowerShell($env:GITHUB_TOKEN; [System.Environment]::GetEnvironmentVariable\\(\"GITHUB_TOKEN\", \"User\"\\); [System.Environment]::GetEnvironmentVariable\\(\"GH_TOKEN\", \"User\"\\))",
+      "mcp__codex__codex_task",
+      "mcp__codex__codex_reply",
+      "mcp__codex__codex_status"
     ]
   },
   "hooks": {

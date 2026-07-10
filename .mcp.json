@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "codex": {
+      "command": "node",
+      "args": ["mcp/codex/server.js"],
+      "env": {
+        "CODEX_ALLOWED_ROOTS": "."
+      }
+    }
+  }
+}

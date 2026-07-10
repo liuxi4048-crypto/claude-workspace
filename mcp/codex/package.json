@@ -1,0 +1,15 @@
+{
+  "name": "codex-mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "自作 Codex MCP サーバー — APIキー不要（ChatGPTアカウント認証の Codex CLI をラップ）",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.0"
+  }
+}
