@@ -22,14 +22,27 @@ Googleスプレッドシート + Google Apps Script（GAS）で動く、学生�
 - **給与計算**: 時間帯別の時間数 × 時給で月次集計
 - **ログイン**: スタッフ名＋パスワード / トークン（1年有効）による自動ログイン
 
+## すぐ使いたい人へ（セットアップ）
+
+**[SETUP.md](./SETUP.md) に、コピペで使える状態にするまでの手順をまとめています。**
+ポイントは、コードを貼ったあとメニューの **「★ 初回セットアップ」** を1回押すだけで、
+必要なシートとサンプルデータ（スタッフ5名・時間割・ログインアカウント等）が自動生成される点です。
+
+- 管理者ログイン例：スタッフ名 `管理者` / パスワード `admin1234`
+- バイトログイン例：スタッフ名 `山田花子` / パスワード `pass1234`
+- 本番前にサンプルのパスワードと `ADMIN_EMAIL` は必ず変更してください。
+
 ## ファイル構成
 
 ```
 tsukurukids-shift/
-  gas/
-    Code.gs        # GAS本体（サーバーサイド + Webアプリのルーティング）
-    index.html     # WebアプリのUI（ログイン/カレンダー/申請/管理画面・PWA対応）
+  SETUP.md            # セットアップ手順（手動 / clasp 両対応）
   README.md
+  gas/
+    Code.gs           # GAS本体（サーバーサイド + Webアプリ + 初回セットアップ）
+    index.html        # WebアプリのUI（ログイン/カレンダー/申請/管理画面・PWA対応）
+    appsscript.json   # GASマニフェスト（タイムゾーン・Webアプリ設定・スコープ）
+    .clasp.json.example  # clasp 用設定のひな形（scriptId を入れてコピーして使う）
 ```
 
 > `doGet` は `HtmlService.createTemplateFromFile('index')` を参照します。Apps Script 側では
