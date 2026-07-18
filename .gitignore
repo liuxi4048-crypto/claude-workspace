@@ -5,6 +5,8 @@ credentials.json
 token.json
 client_secret*.json
 service_account*.json
+.clasp.json
+.clasprc.json
 
 # Python
 __pycache__/
