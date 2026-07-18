@@ -28,13 +28,17 @@ Googleスプレッドシート + Google Apps Script（GAS）で動く、学生�
 tsukurukids-shift/
   gas/
     Code.gs        # GAS本体（サーバーサイド + Webアプリのルーティング）
+    index.html     # WebアプリのUI（ログイン/カレンダー/申請/管理画面・PWA対応）
   README.md
 ```
 
-> **注意**: WebアプリのUIである `index`（HTMLテンプレート）は本リポジトリに未収録です。
-> `doGet` が `HtmlService.createTemplateFromFile('index')` を参照しているため、
-> Webアプリとして公開するには Apps Script 側に `index.html` が必要です。
-> HTMLファイルをお持ちであれば `gas/index.html` として追加してください（別途反映します）。
+> `doGet` は `HtmlService.createTemplateFromFile('index')` を参照します。Apps Script 側では
+> HTMLファイルの名前が `index`（拡張子なし表示）になるよう、`index.html` の内容をそのまま
+> 「ファイル > HTML」で作成した `index` に貼り付けてください（clasp利用時は `index.html` のまま push で可）。
+>
+> `index.html` は Google Fonts / FullCalendar を CDN から読み込みます。オフラインの
+> 完全自己完結ではなく、表示時にインターネット接続が必要です（PWAのService Workerは
+> ナビゲーションのみキャッシュ）。
 
 ## 取り込み時の修正
 
@@ -98,7 +102,8 @@ clasp push
 
 ## 既知の制限・留意点
 
-- **`index.html` 未収録**（上記のとおり）。Webアプリ公開にはHTMLの追加が必要。
+- **UIはCDN依存**。`index.html` は Google Fonts / FullCalendar を外部CDNから読み込むため、
+  表示にはインターネット接続が必要（完全オフライン動作はしない）。
 - **同時書き込みの厳密な排他はなし**。シフト交換の承認は「ステータス確認 → 更新」の
   楽観的方式で、極端な同時操作では後勝ちになり得る。
 - **メール送信は `MailApp`** に依存（個人Googleアカウントで1日100通程度の上限）。
