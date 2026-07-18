@@ -45,7 +45,12 @@ tsukurukids-shift/
     index.html        # WebアプリのUI（ログイン/カレンダー/申請/管理画面・PWA対応）
     appsscript.json   # GASマニフェスト（タイムゾーン・Webアプリ設定・スコープ）
     .clasp.json.example  # clasp 用設定のひな形（scriptId を入れてコピーして使う）
+  demo/
+    demo.html         # ブラウザ内デモ（1画面UI・実12名＋割り当てロジック移植・GAS不要）
 ```
+
+`demo/demo.html` はブラウザで開くだけで動くプレビュー版（localStorage保存・スプレッドシート/
+メール非連携）。本番GAS版とはコードベースが別で、動きを確認する用途のもの。
 
 > `doGet` は `HtmlService.createTemplateFromFile('index')` を参照します。Apps Script 側では
 > HTMLファイルの名前が `index`（拡張子なし表示）になるよう、`index.html` の内容をそのまま
