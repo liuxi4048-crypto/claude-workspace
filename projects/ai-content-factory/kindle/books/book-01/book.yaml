@@ -4,13 +4,13 @@ title: 小さなお店のためのChatGPT活用術
 title_kana: チイサナオミセノタメノチャットジーピーティーカツヨウジュツ
 title_romaji: Chiisana Omise no Tame no ChatGPT Katsuyoujutsu
 subtitle: 予約対応・メニュー作り・SNS投稿を1日30分で回す
-author: （ペンネーム未定）
-author_kana: （未定）
-author_romaji: （未定）
+author: モロミー   # 仮ペンネーム。確定したらここを変えて3スクリプト再実行で全成果物が差し替わる
+author_kana: モロミー
+author_romaji: Moromi
 language: ja
 price_jpy: 500
 kdp_select: true
-status: planning   # planning / writing / review / published
+status: review   # planning / writing / review / published
 
 description: |
   「人手が足りない。でもITは苦手」——そんな小さなお店のオーナーのための、
