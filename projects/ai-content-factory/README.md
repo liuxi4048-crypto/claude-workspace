@@ -10,7 +10,16 @@ Claude Code サブスクを活用した二本柱の収益プロジェクト。
 | 稼働時間 | 週5時間以下（Claude Code が制作の8割を担当、本人はレビューと手作業のみ） |
 | 目標 | 3ヶ月以内に初売上（**初売上が立てば成功**のライン） |
 | スキル前提 | 実績ゼロからスタート |
-| 運転方法 | `/content-factory` スキルで週次運転 |
+| 運転方法 | `/content-factory` スキルで週次運転（`../portfolio.md` 登録の全プロジェクトを横断運転） |
+
+## ユーザーの手作業は3種類だけ（それ以外は全自動）
+
+制作（原稿→EPUB→表紙→入稿キット）は `scripts/` のパイプラインで全自動化済み。
+アカウント作成と最終クリックだけは本人確認・各社規約（自動化禁止）のため自動化せず、コピペで済む形に圧縮してある:
+
+1. **アカウント開設**（1回だけ・各15分）— `setup/` のガイド順: Google → KDP → ココナラ
+2. **KDP 入稿**（15分/冊）— 自動生成される `output/publish-kit.md` を上から順にコピペ＋EPUB と表紙をアップロード
+3. **ココナラ操作**（都度）— 出品文・提案文・納品文をコピペして送信
 
 ## 収益見込み（保守的）
 
@@ -20,10 +29,10 @@ Claude Code サブスクを活用した二本柱の収益プロジェクト。
 
 ## 規約チェックリスト（毎回の出版・出品前に確認）
 
-- [ ] **KDP: 「AI-generated」として申告する**
+- [ ] **KDP: 「AI-generated」として申告する（本文・画像とも）**
   - Claude Code が原稿の大半を執筆するモデルは、後から大幅に編集しても KDP の定義上「AI-generated」（「AI-assisted」ではない）
+  - **表紙は `make_cover.py` によるプログラム生成のため「画像」も AI-generated 申告対象**（自動生成される publish-kit.md に申告手順が入る）
   - 未申告は書籍削除・アカウント停止リスク（執行強化中）。申告は Amazon 内部用で商品ページには表示されず、正しく申告すれば出版自体は問題ない
-- [ ] **表紙に AI 画像生成を使った場合、表紙も申告対象**（Canva 手動作成なら申告不要）
 - [ ] **ココナラ: コード納品系のみ出品**（GAS・スクリプト・Web修正）
   - ココナラは「AIにより生成した文章の記事」を出品禁止コンテンツ例に含み、AI 判定システムを導入している。文章系（記事作成・リライト）は出品しない
 - [ ] 納品物は必ず人手レビュー・動作確認してから納品（`coconala/delivery-checklist.md`）
@@ -40,15 +49,15 @@ Claude Code サブスクを活用した二本柱の収益プロジェクト。
 ## 90日ロードマップ
 
 ### Week 1–2: セットアップ
-- [ ] KDP アカウント作成（ユーザー作業・無料）
-- [ ] ココナラ会員登録・プロフィール整備（ユーザー作業・無料）
-- [ ] `kindle/niche-research.md` の企画3案から1冊目を決定
-- [ ] ココナラにコード系出品文3本を公開（`coconala/listings.md`）
+- [ ] 専用 Google アカウント開設（`setup/google-account-guide.md`・15分）
+- [ ] KDP アカウント作成（`setup/kdp-account-guide.md`・15分）
+- [ ] ココナラ登録＋出品3本コピペ公開（`setup/coconala-account-guide.md`・15分）
+- [ ] `kindle/niche-research.md` の企画3案から1冊目を決定・ペンネーム決定
 
 ### Week 3–6: 1冊目出版＋営業開始
 - [ ] 1冊目を執筆（週1〜2章レビューのペース、Claude がドラフト生成）
-- [ ] 表紙を Canva で作成（`kindle/templates/cover-workflow.md`）
-- [ ] KDP 入稿・**AI-generated 申告**・出版（価格 250〜1,250円で70%ロイヤリティ帯、KDP セレクト登録で Kindle Unlimited 既読ページ収益も獲得）
+- [ ] 表紙・EPUB・入稿キットはパイプラインで自動生成（`scripts/README.md`）
+- [ ] KDP 入稿: `output/publish-kit.md` をコピペ・**AI-generated 申告（本文・画像とも）**・出版（価格 250〜1,250円で70%ロイヤリティ帯、KDP セレクト登録で Kindle Unlimited 既読ページ収益も獲得）
 - [ ] ココナラで提案送付を開始（同時1件まで）
 
 ### Week 7–12: 量産と絞り込み
@@ -68,20 +77,34 @@ Claude Code サブスクを活用した二本柱の収益プロジェクト。
 ## ディレクトリ構成
 
 ```
-projects/ai-content-factory/
-├── README.md                      # 本ファイル（事業計画書）
-├── progress.md                    # 週次進捗（/content-factory が更新）
-├── kindle/
-│   ├── niche-research.md          # 市場リサーチと企画3案
-│   ├── templates/
-│   │   ├── chapter-template.md    # 章の執筆テンプレ
-│   │   └── cover-workflow.md      # 表紙作成工程
-│   └── books/                     # 1冊ごとの作業ディレクトリ（執筆開始時に作成）
-└── coconala/
-    ├── listings.md                # 出品文3本（コード納品系限定）
-    ├── proposal-templates.md      # 提案文・ヒアリングテンプレ
-    └── delivery-checklist.md      # 納品前チェックリスト
+projects/
+├── portfolio.md                   # 全プロジェクトのレジストリ（並行運転の起点）
+└── ai-content-factory/
+    ├── README.md                  # 本ファイル（事業計画書）
+    ├── progress.md                # 週次進捗（/content-factory が更新・共通フォーマット）
+    ├── setup/                     # アカウント開設キット（1回だけ・各15分）
+    │   ├── google-account-guide.md
+    │   ├── kdp-account-guide.md
+    │   └── coconala-account-guide.md
+    ├── scripts/                   # 制作パイプライン（全自動）
+    │   ├── make_cover.py          # 表紙PNG + サムネイル自動生成
+    │   ├── build_book.py          # Markdown → EPUB3（構造検証つき）
+    │   ├── make_publish_kit.py    # KDP入稿コピペキット生成
+    │   └── README.md
+    ├── kindle/
+    │   ├── niche-research.md      # 市場リサーチと企画3案
+    │   ├── templates/             # 章テンプレ・表紙工程
+    │   └── books/book-01/         # 1冊ごと: book.yaml + cover.json + chapters/ → output/
+    └── coconala/
+        ├── listings.md            # 出品文3本（コード納品系限定）
+        ├── proposal-templates.md  # 提案文・ヒアリングテンプレ
+        └── delivery-checklist.md  # 納品前チェックリスト
 ```
+
+## 複数プロジェクトの並行運用
+
+- レジストリは `../portfolio.md`。新プロジェクトは「ディレクトリ＋共通フォーマットの progress.md＋portfolio.md への1行追加」だけで週次運転の対象になる
+- グローバル制約（ユーザー作業 週5時間・受託 全体で同時1件）はポートフォリオ全体で共有
 
 ## 運用ルール
 

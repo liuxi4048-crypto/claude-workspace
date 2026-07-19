@@ -1,0 +1,36 @@
+# 1冊目メタデータ（企画案A・仮値。タイトル確定時に更新する）
+slug: chatgpt-for-small-shops
+title: 小さなお店のためのChatGPT活用術
+title_kana: チイサナオミセノタメノチャットジーピーティーカツヨウジュツ
+title_romaji: Chiisana Omise no Tame no ChatGPT Katsuyoujutsu
+subtitle: 予約対応・メニュー作り・SNS投稿を1日30分で回す
+author: （ペンネーム未定）
+author_kana: （未定）
+author_romaji: （未定）
+language: ja
+price_jpy: 500
+kdp_select: true
+status: planning   # planning / writing / review / published
+
+description: |
+  「人手が足りない。でもITは苦手」——そんな小さなお店のオーナーのための、
+  いちばんやさしいChatGPT実用ガイドです。
+
+  SNS投稿、メニューやPOPの文面、予約への返信、口コミへの対応。
+  毎日の「文章を考える時間」を、スマホとChatGPTで1日30分に圧縮します。
+
+  むずかしい理屈は抜きにして、コピーしてそのまま使える文例を多数収録。
+  今日から、お店の実務がラクになります。
+
+keywords:
+  - ChatGPT 使い方
+  - 飲食店 集客
+  - 個人経営
+  - SNS投稿 文例
+  - AI 活用 初心者
+  - 口コミ 返信
+  - 業務効率化
+
+categories:
+  - ビジネス・経済 > 実践経営・リーダーシップ
+  - コンピュータ・IT > その他
